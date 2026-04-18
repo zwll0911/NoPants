@@ -54,11 +54,11 @@ graph TD
     A[User Audio Input] --> B(Intent Extractor AI)
     B --> C{Categorized Task Array}
     
-    C -->|["TYPE": "SMART_LIGHT"]| D[Send 'HOME:LIGHT:COLOR:BLUE' to ESP32]
-    C -->|["TYPE": "PLAY_MUSIC"]| E[Fetch Audio via yt-dlp]
-    C -->|["TYPE": "SET_TIMER"]| F[Start Visual Web UI Timer]
-    C -->|["TYPE": "REMEMBER_FACT"]| G[Save to user_memory.json]
-    C -->|["TYPE": "CHECK_CALENDAR"]| H[Ping Google Workspace Auth]
+    C -->|TYPE: SMART_LIGHT| D[Send 'HOME:LIGHT:COLOR:BLUE' to ESP32]
+    C -->|TYPE: PLAY_MUSIC| E[Fetch Audio via yt-dlp]
+    C -->|TYPE: SET_TIMER| F[Start Visual Web UI Timer]
+    C -->|TYPE: REMEMBER_FACT| G[Save to user_memory.json]
+    C -->|TYPE: CHECK_CALENDAR| H[Ping Google Workspace Auth]
     
     D --> I[Wait for Hardware confirmation]
     E --> J[Pass stream to vlc]
