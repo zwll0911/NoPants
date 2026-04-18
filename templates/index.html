@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoPants OS Terminal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- BRIGHTER AURORA BACKGROUND --- */
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background-color: #0b0d14; 
+            background-image: 
+                radial-gradient(circle at 50% 50%, transparent 20%, #0b0d14 100%),
+                linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: #e2e8f0; 
+            margin: 0; 
+            padding: 20px 20px 95px 20px; 
+            display: flex; justify-content: center; align-items: flex-start;
+            height: 100vh; /* Lock body strictly to screen height */
+            box-sizing: border-box;
+            overflow: hidden; /* Prevent full-page scrolling */
+            position: relative;
+        }
+
+        /* 3-Point Aurora Mesh */
+        body::before, body::after, .aurora {
+            content: ''; position: fixed; border-radius: 50%;
+            z-index: -1; filter: blur(100px); opacity: 0.65;
+            animation: floatBlobs 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body::before { width: 50vw; height: 50vw; top: -10%; left: -10%; background: #4f46e5; }
+        body::after { width: 45vw; height: 45vw; bottom: -10%; right: -10%; background: #0ea5e9; animation-delay: -5s; }
+        .aurora { width: 55vw; height: 55vw; top: 30%; left: 30%; background: #a855f7; animation-delay: -12s; mix-blend-mode: screen; }
+        
+        @keyframes floatBlobs {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            50% { transform: translate(5vw, 5vh) scale(1.1) rotate(180deg); }
+            100% { transform: translate(-5vw, 10vh) scale(0.9) rotate(360deg); }
+        }
+
+        /* --- MAIN LAYOUT (Smart Flexbox) --- */
+        .app-container {
+            width: 100%; max-width: 1200px;
+            display: flex; flex-direction: column; gap: 20px;
+            height: 100%; /* Dynamically fill the space remaining inside body padding */
+            min-height: 0; /* FIX: Prevent layout blowout */
+            z-index: 10;
+        }
+
+        /* GLASS HEADER */
+        .header-glass {
+            background: rgba(15, 20, 30, 0.5);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.25);
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px; padding: 20px 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(255,255,255,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0; /* Prevent header from squishing */
+        }
+
+        h1 { 
+            margin: 0; font-size: 24px; color: #fff; 
+            letter-spacing: 4px; font-weight: 800; text-transform: uppercase;
+            text-shadow: 0 0 15px rgba(34, 211, 238, 0.6);
+        }
+        
+        .status-indicators { display: flex; gap: 15px; font-size: 11px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 2px;}
+        .status-item { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px #ef4444; transition: all 0.3s;}
+        .dot.active { background: #22d3ee; box-shadow: 0 0 12px #22d3ee; animation: pulseCyan 2s infinite; }
+        .dot.listening { background: #fde047; box-shadow: 0 0 15px #fde047; animation: pulseYellow 1s infinite alternate; }
+
+        @keyframes pulseCyan { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.8); } }
+        @keyframes pulseYellow { from { transform: scale(1); } to { transform: scale(1.3); } }
+
+        /* --- TWO COLUMN GRID --- */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 25px;
+            flex-grow: 1; /* Automatically takes all space left after the header */
+            min-height: 0; /* FIX: Allows children to scroll instead of bursting out */
+        }
+
+        /* TRUE GLASS PANELS */
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(10, 15, 25, 0.6) 100%);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(34, 211, 238, 0.05);
+            padding: 25px;
+            display: flex; flex-direction: column;
+            position: relative;
+            min-height: 0; /* FIX: The golden rule to trap expanding flexbox children */
+        }
+
+        /* Sci-Fi Corner Brackets */
+        .glass-panel::before, .glass-panel::after {
+            content: ''; position: absolute; width: 40px; height: 40px; pointer-events: none;
+        }
+        .glass-panel::before { top: -1px; left: -1px; border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee; border-top-left-radius: 20px; }
+        .glass-panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid #a78bfa; border-right: 2px solid #a78bfa; border-bottom-right-radius: 20px; }
+
+        /* --- SIDEBAR DASHBOARD CARDS --- */
+        .system-sidebar {
+            gap: 15px;
+            overflow-y: auto; /* Allows scrolling on small screens if it gets too tall */
+        }
+        .system-sidebar::-webkit-scrollbar { display: none; }
+
+        .dash-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 18px; border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .dash-card.row-layout {
+            flex-direction: row; justify-content: space-between; align-items: center;
+        }
+
+        .dash-card h4 {
+            margin: 0 0 12px 0; color: #94a3b8; font-size: 11px;
+            text-transform: uppercase; letter-spacing: 2px; font-weight: 600;
+        }
+
+        .dash-value {
+            font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; color: #fff;
+            text-shadow: 0 0 15px rgba(34, 211, 238, 0.6); margin: 0;
+        }
+
+        .hw-dot {
+            width: 16px; height: 16px; border-radius: 50%; background: #ef4444;
+            box-shadow: 0 0 10px #ef4444; transition: all 0.3s;
+        }
+        .hw-dot.online { background: #34d399; box-shadow: 0 0 15px #34d399; }
+
+        /* PROGRESS BARS */
+        .progress-block { margin-bottom: 12px; }
+        .progress-block:last-child { margin-bottom: 0; }
+        .progress-header { display: flex; justify-content: space-between; font-size: 11px; color: #cbd5e1; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px;}
+        
+        .progress-bar-container {
+            width: 100%; height: 8px; background: rgba(0,0,0,0.5);
+            border-radius: 4px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .progress-fill {
+            height: 100%; background: #22d3ee; border-radius: 3px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); width: 0%;
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
+            background-size: 10px 10px;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.6);
+        }
+        .progress-fill.ram { 
+            background-color: #a78bfa; 
+            box-shadow: 0 0 15px rgba(167, 139, 250, 0.6);
+        }
+
+        /* --- TERMINAL LOG --- */
+        .terminal-main {
+            padding: 20px;
+        }
+        
+        .terminal-title {
+            color: #22d3ee; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 15px; border-bottom: 1px solid rgba(34, 211, 238, 0.3); padding-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .chat-box { 
+            flex-grow: 1; background: rgba(0, 0, 0, 0.2); overflow-y: auto; 
+            font-size: 14px; font-family: 'JetBrains Mono', monospace;
+            padding: 15px; display: flex; flex-direction: column; gap: 14px;
+            border-radius: 12px; border: 1px inset rgba(255,255,255,0.02);
+            box-shadow: inset 0 10px 30px rgba(0,0,0,0.3);
+            min-height: 0; /* Essential for flexbox scrolling inside grids */
+        }
+        .chat-box::-webkit-scrollbar { width: 6px; }
+        .chat-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        
+        .message { word-wrap: break-word; line-height: 1.6; display: flex; flex-direction: column; }
+        .sys-msg { color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .msg-bubble {
+            padding: 12px 18px; width: fit-content; max-width: 85%;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .user-msg { align-items: flex-end; }
+        .user-msg .msg-bubble { 
+            background: linear-gradient(135deg, rgba(253, 224, 71, 0.15), rgba(0,0,0,0.5)); 
+            color: #fde047; 
+            border-right: 3px solid #fde047; 
+            border-radius: 16px 4px 16px 16px; 
+        }
+        .bot-msg { align-items: flex-start; }
+        .bot-msg .msg-bubble { 
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(0,0,0,0.5)); 
+            color: #fff; 
+            border-left: 3px solid #22d3ee; 
+            border-radius: 4px 16px 16px 16px; 
+        }
+        .timestamp { font-size: 10px; opacity: 0.7; margin-bottom: 5px; color: #94a3b8; font-weight: 600;}
+
+        /* --- MIC OVERLAY --- */
+        #click-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); color: #22d3ee;
+            display: none; justify-content: center; align-items: center;
+            font-size: 18px; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+            z-index: 9999; cursor: pointer; letter-spacing: 3px; text-align: center;
+            flex-direction: column; gap: 15px;
+        }
+        
+        /* BOTTOM APP NAVIGATION */
+        .app-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px;
+            background: rgba(10, 10, 15, 0.7); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-top: 1px solid rgba(34, 211, 238, 0.15); display: flex;
+            justify-content: space-around; align-items: center; z-index: 9999;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: #64748b; font-size: 11px; font-weight: 700;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; height: 100%;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .nav-item:hover { color: #cbd5e1; }
+        .nav-item.active { color: #22d3ee; text-shadow: 0 0 10px rgba(34,211,238,0.5); } 
+        .nav-item.active .nav-icon { transform: translateY(-4px) scale(1.15); filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.8)); }
+        .nav-icon { font-size: 24px; margin-bottom: 6px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* RESPONSIVE: Stack vertically gracefully on small screens */
+        @media (max-width: 850px) {
+            body { padding-bottom: 95px; height: auto; overflow-y: auto;}
+            .content-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+            .terminal-main { height: 60vh; }
+            .header-glass { flex-direction: column; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+<div class="aurora"></div>
+
+<div id="click-overlay" onclick="forceUnlockMic()">
+    <span style="font-size: 36px; text-shadow: 0 0 20px #22d3ee;">🎙️</span>
+    <span>MIC BLOCKED.<br>CLICK ANYWHERE TO INITIALIZE.</span>
+</div>
+
+<div class="app-container">
+    
+    <div class="header-glass">
+        <h1>Sys.Monitor</h1>
+        <div class="status-indicators">
+            <div class="status-item"><div class="dot" id="dot-socket"></div> Link</div>
+            <div class="status-item"><div class="dot" id="dot-mic"></div> Mic</div>
+            <div class="status-item"><div class="dot" id="dot-state"></div> <span id="text-state">SLEEP</span></div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        
+        <div class="glass-panel system-sidebar">
+            <div class="dash-card" style="text-align: center;">
+                <h4>System Load</h4>
+                
+                <div class="progress-block">
+                    <div class="progress-header">
+                        <span>CPU Core</span>
+                        <span id="cpu-val" style="color: #22d3ee;">0%</span>
+                    </div>
+                    <div class="progress-bar-container"><div id="cpu-bar" class="progress-fill"></div></div>
+                </div>
+
+                <div class="progress-block">
+                    <div class="progress-header">
+                        <span>Memory (RAM)</span>
+                        <span id="ram-val" style="color: #a78bfa;">0%</span>
+                    </div>
+                    <div class="progress-bar-container"><div id="ram-bar" class="progress-fill ram"></div></div>
+                </div>
+            </div>
+
+            <div class="dash-card row-layout">
+                <div style="text-align: left;">
+                    <h4>ESP32 Link</h4>
+                    <span id="esp-text" style="font-size: 13px; font-weight: 800; color: #ef4444; letter-spacing: 1px;">OFFLINE</span>
+                </div>
+                <div id="esp-dot" class="hw-dot"></div>
+            </div>
+
+            <div class="dash-card row-layout">
+                <div style="text-align: left;">
+                    <h4>Audio Vol</h4>
+                    <div id="vol-val" class="dash-value">0%</div>
+                </div>
+                <span style="font-size: 28px; opacity: 0.5;">🔊</span>
+            </div>
+
+            <div class="dash-card row-layout">
+                <div style="text-align: left;">
+                    <h4>WiFi Strength</h4>
+                    <div id="wifi-val" class="dash-value" style="color: #34d399; text-shadow: 0 0 15px rgba(52, 211, 153, 0.6);">N/A</div>
+                </div>
+                <span style="font-size: 28px; opacity: 0.5;">📶</span>
+            </div>
+        </div>
+
+        <div class="glass-panel terminal-main">
+            <div class="terminal-title">Active Data Stream</div>
+            <div class="chat-box" id="chat-box">
+                <div class="message sys-msg">> <span style="display:inline; margin-right:4px;">[SYS]</span> Boot sequence initiated...</div>
+                <div class="message sys-msg">> <span style="display:inline; margin-right:4px;">[SYS]</span> Awaiting WebSocket connection...</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const socket = io();
+    
+    function logMessage(text, typeClass) {
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = "message " + typeClass;
+
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0') + ':' + 
+                        now.getSeconds().toString().padStart(2, '0');
+
+        if (typeClass === 'sys-msg') {
+            msgDiv.innerHTML = `> <span class="timestamp" style="display:inline; margin-right:4px;">[${timeStr}]</span> ${text}`;
+        } else {
+            let label = typeClass === 'user-msg' ? 'USER' : 'NOPANTS';
+            msgDiv.innerHTML = `<span class="timestamp">${label} // ${timeStr}</span><div class="msg-bubble">${text}</div>`;
+        }
+
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight; 
+    }
+
+    socket.on('connect', () => {
+        document.getElementById('dot-socket').classList.add('active');
+        logMessage("WebSocket connected to core matrix.", "sys-msg");
+    });
+    
+    socket.on('disconnect', () => {
+        document.getElementById('dot-socket').classList.remove('active');
+        logMessage("WARNING: WebSocket disconnected.", "sys-msg");
+    });
+    
+    socket.on('llm_response', (data) => {
+        logMessage(data.response, "bot-msg");
+    });
+
+    // --- SYSTEM HEALTH LISTENER ---
+    socket.on('system_health', function(data) {
+        document.getElementById('cpu-val').innerText = data.cpu + "%";
+        document.getElementById('cpu-bar').style.width = data.cpu + "%";
+        
+        document.getElementById('ram-val').innerText = data.ram + "%";
+        document.getElementById('ram-bar').style.width = data.ram + "%";
+        
+        document.getElementById('vol-val').innerText = data.volume + "%";
+        document.getElementById('wifi-val').innerText = data.wifi;
+        
+        const espDot = document.getElementById('esp-dot');
+        const espText = document.getElementById('esp-text');
+        if (data.esp32) {
+            espDot.classList.add('online');
+            espText.innerText = "CONNECTED";
+            espText.style.color = "#34d399";
+        } else {
+            espDot.classList.remove('online');
+            espText.innerText = "OFFLINE";
+            espText.style.color = "#ef4444";
+        }
+    });
+
+    // --- MIC LOGIC ---
+    socket.on('force_mic_listen', () => {
+        logMessage("WALKIE-TALKIE OVERRIDE ENGAGED.", "sys-msg");
+        setMicState('AWAKE'); 
+        socket.emit('hardware_command', { command: "EARS:UP" });
+        clearTimeout(sleepTimer);
+        sleepTimer = setTimeout(function() {
+            logMessage("Timeout. Returning to sleep mode.", "sys-msg");
+            socket.emit('hardware_command', { command: "EARS:FLAT" });
+            socket.emit('hardware_command', { command: "LED:OFF" });
+            setMicState('SLEEP');
+        }, 8000);
+    });
+
+    let isAwake = false;
+    let recognition;
+    let sleepTimer;
+
+    function setMicState(state) {
+        const dotState = document.getElementById('dot-state');
+        const textState = document.getElementById('text-state');
+        if (state === 'SLEEP') {
+            isAwake = false; dotState.className = "dot"; textState.innerText = "SLEEP";
+        } else if (state === 'AWAKE') {
+            isAwake = true; dotState.className = "dot active"; textState.innerText = "AWAKE";
+        } else if (state === 'LISTENING') {
+            dotState.className = "dot listening"; textState.innerText = "LISTEN";
+        }
+    }
+
+    function initDictation() {
+        if (!window.hasOwnProperty('webkitSpeechRecognition')) return;
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true; recognition.interimResults = false; recognition.lang = "en-US";
+
+        recognition.onstart = function() {
+            document.getElementById('dot-mic').classList.add('active');
+            document.getElementById('click-overlay').style.display = 'none'; 
+        };
+
+        recognition.onresult = function(e) {
+            let last = e.results.length - 1;
+            let transcript = e.results[last][0].transcript.toLowerCase().trim();
+            logMessage("STREAM: '" + transcript + "'", "sys-msg");
+
+            if (!isAwake) {
+                if (transcript.includes("hey no pants") || transcript.includes("hey nopants") || transcript.includes("hey no pens") || transcript.includes("hey no pans") || transcript.includes("no pants")) {
+                    setMicState('AWAKE');
+                    socket.emit('hardware_command', { command: "EARS:UP" });
+                    socket.emit('hardware_command', { command: "LED:BLUE" });
+
+                    sleepTimer = setTimeout(function() {
+                        socket.emit('hardware_command', { command: "EARS:FLAT" });
+                        socket.emit('hardware_command', { command: "LED:OFF" });
+                        setMicState('SLEEP');
+                        try { recognition.stop(); } catch(err) {} 
+                    }, 8000);
+                } else if (e.results.length > 5) {
+                    try { recognition.stop(); } catch(err) {} 
+                }
+            } else {
+                clearTimeout(sleepTimer); 
+                logMessage(transcript, "user-msg");
+                socket.emit('llm_request', { prompt: transcript });
+                setMicState('SLEEP'); 
+                try { recognition.stop(); } catch(err) {} 
+            }
+        };
+
+        recognition.onerror = function(event) {
+            if (event.error === 'not-allowed') {
+                document.getElementById('click-overlay').style.display = 'flex';
+            }
+        };
+
+        recognition.onend = function() {
+            document.getElementById('dot-mic').classList.remove('active');
+            setTimeout(function() { try { recognition.start(); } catch(err) {} }, 1000);
+        };
+        try { recognition.start(); } catch(err) {}
+    }
+
+    function forceUnlockMic() {
+        document.getElementById('click-overlay').style.display = 'none';
+        try { recognition.start(); } catch(err) {}
+    }
+
+    window.onload = () => { initDictation(); };
+</script>
+
+<nav class="app-nav">
+    <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+        <span class="nav-icon">💬</span>
+        Log
+    </a>
+    <a href="/settings" class="nav-item {% if request.path == '/settings' %}active{% endif %}">
+        <span class="nav-icon">⚙️</span>
+        System
+    </a>
+</nav>
+</body>
+</html>

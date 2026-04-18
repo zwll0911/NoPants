@@ -1,0 +1,17 @@
+*.onnx
+*.zip
+*.tar.gz
+*.mp3
+*.wav
+user_memory.json
+leaderboard.json
+alarms.json
+token.json
+credentials.json
+*.log
+__pycache__/
+model/
+piper/
+vosk-model-*/
+nopants_env/
+config.json

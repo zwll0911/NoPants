@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NoPants OS - Bikini Bottom Arcade</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; overflow: hidden; color: white; font-family: 'Orbitron', sans-serif; 
+            background: linear-gradient(to bottom, #0ea5e9, #0f172a);
+            width: 100vw; height: 100vh; 
+        }
+        canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        body::after {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.15) 20%, transparent 20%), radial-gradient(rgba(255, 255, 255, 0.1) 20%, transparent 20%);
+            background-size: 60px 60px; background-position: 0 0, 30px 30px;
+            z-index: 0; pointer-events: none; animation: bubbles 10s linear infinite;
+        }
+        @keyframes bubbles { 0% { background-position: 0 0, 30px 30px; } 100% { background-position: 0 -60px, 30px -30px; } }
+
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .hidden { display: none !important; }
+        
+        .full-screen-menu { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; pointer-events: auto; }
+        h1 { font-size: 90px; color: #fde047; margin-bottom: 5px; text-shadow: 6px 6px 0 #b45309, 0 0 30px #fde047; text-transform: uppercase; letter-spacing: 5px; }
+        h2 { font-size: 24px; color: #fff; margin-bottom: 50px; text-shadow: 2px 2px 0 #000; letter-spacing: 2px; }
+        
+        .menu-container { border: 6px solid #451a03; padding: 20px 40px; border-radius: 15px; background: rgba(133, 77, 14, 0.95); box-shadow: 10px 10px 0 rgba(0,0,0,0.5); }
+        .menu-item { font-size: 35px; margin: 20px; color: #fcd34d; text-shadow: 2px 2px 0 #451a03; transition: 0.2s; text-align: center; }
+        .selected { color: #fff; text-shadow: 4px 4px 0 #ea580c, 0 0 20px #fff; transform: scale(1.15) rotate(-2deg); font-weight: 900; }
+        
+        #menu-highscore { font-size: 30px; color: #4ade80; margin-top: 40px; text-shadow: 2px 2px 0 #064e3b, 0 0 15px #4ade80; font-weight: 900; letter-spacing: 2px; animation: pulseGlow 1.5s infinite alternate; }
+        @keyframes pulseGlow { 0% { text-shadow: 2px 2px 0 #064e3b, 0 0 5px #4ade80; transform: scale(1); } 100% { text-shadow: 2px 2px 0 #064e3b, 0 0 25px #4ade80; transform: scale(1.05); } }
+
+        #pause-screen { background: rgba(15, 23, 42, 0.85); }
+        #game-over { background: rgba(127, 29, 29, 0.9); border: 8px solid #b91c1c; box-shadow: inset 0 0 100px #450a0a; }
+        #go-title { font-size: 70px; color: #f87171; text-shadow: 6px 6px 0 #450a0a; display: block; margin-bottom: 30px; text-align: center; line-height: 1.2; }
+
+        .hud-text { font-size: 28px; text-shadow: 3px 3px 0 #000; font-weight: bold; }
+        #game-hud-top-left { position: absolute; top: 20px; left: 20px; }
+        #game-hud-top-right { position: absolute; top: 20px; right: 20px; color: #38bdf8; text-align: right; }
+        #game-hud-center { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); font-size: 24px; color: #fde047; text-shadow: 0 0 15px #fde047; }
+        
+        .flash-red { animation: damageFlash 0.3s; }
+        .flash-green { animation: successFlash 0.3s; }
+        @keyframes damageFlash { 0% { background-color: #ef4444; } 100% { background-color: transparent; } }
+        @keyframes successFlash { 0% { background-color: #22c55e; } 100% { background-color: transparent; } }
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="/static/spongebob_bgm.mp3" loop></audio>
+    
+    <div id="ui-layer">
+        <div id="menu-screen" class="full-screen-menu">
+            <h1>NoPants OS</h1>
+            <h2>> BIKINI BOTTOM ARCADE <</h2>
+            <div class="menu-container">
+                <div id="menu-opt-0" class="menu-item selected">▶ JELLYFISH DEFENDER ◀</div>
+                <div id="menu-opt-1" class="menu-item">  CHUM BUCKET BLOCKS  </div>
+                <div id="menu-opt-2" class="menu-item">  KRUSTY KRAB RUSH  </div>
+            </div>
+            <div id="menu-highscore">🏆 HIGH SCORE: 0 🏆</div>
+        </div>
+
+        <div id="pause-screen" class="full-screen-menu hidden">
+            <h1 style="color: #cbd5e1;">PAUSED</h1>
+            <div class="menu-container">
+                <div id="pause-opt-0" class="menu-item selected">▶ RESUME ◀</div>
+                <div id="pause-opt-1" class="menu-item">  RESTART  </div>
+                <div id="pause-opt-2" class="menu-item">  MAIN MENU  </div>
+            </div>
+        </div>
+
+        <div id="game-over" class="full-screen-menu hidden">
+            <span id="go-title">TARTAR SAUCE!<br>GAME OVER</span>
+            <div class="menu-container">
+                <div id="go-opt-0" class="menu-item selected">▶ TRY AGAIN ◀</div>
+                <div id="go-opt-1" class="menu-item">  MAIN MENU  </div>
+            </div>
+        </div>
+
+        <div id="game-hud-top-left" class="hidden hud-text">
+            <span id="hud-stat-1" style="color: #4ade80;">HP: 100</span><br>
+            <span id="hud-stat-2" style="color: #fde047;">SCORE: 0</span>
+        </div>
+        <div id="game-hud-top-right" class="hidden hud-text">
+            <span id="hud-stat-3">EMPs: 3</span>
+        </div>
+        <div id="game-hud-center" class="hidden hud-text">⚡ OVERDRIVE ⚡</div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const socket = io();
+        
+        let highScores = { 'TURRET': 0, 'TETRIS': 0, 'BURGER': 0 };
+        const gameKeys = ['TURRET', 'TETRIS', 'BURGER'];
+
+        socket.emit('request_leaderboard');
+        socket.on('update_leaderboard', (data) => {
+            highScores = data;
+            updateMenuHighScore(); 
+        });
+
+        function updateMenuHighScore() {
+            let currentSelectedGame = gameKeys[menuSelection];
+            let score = highScores[currentSelectedGame] || 0;
+            document.getElementById('menu-highscore').innerText = `🏆 HIGH SCORE: ${score} 🏆`;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('role')) sessionStorage.setItem('role', urlParams.get('role'));
+
+        socket.on('page_command', (data) => {
+            if (sessionStorage.getItem('role') === 'display' && window.location.pathname !== data.page) {
+                window.location.href = data.page + "?role=display";
+            }
+        });
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let cx = canvas.width / 2;
+        let cy = canvas.height / 2;
+
+        let activeState = 'MENU';
+        let isGameOver = false;
+        let isPaused = false;
+        
+        let menuSelection = 0; const totalGames = 3;
+        let pauseSelection = 0; const totalPauseOpts = 3;
+        let goSelection = 0; const totalGoOpts = 2;
+
+        let t_angle, t_health, t_score, t_emps, t_bullets, t_enemies, t_particles, t_lastFire1, t_lastFire2, t_spawner;
+        let b_player, b_items, b_score, b_overdrive, b_spawner, b_particles, b_timer, b_timer_interval;
+        
+        // --- TETRIS VARIABLES ---
+        let te_grid = []; let te_piece = null; let te_next_type = null; let te_score = 0; let te_level = 1; let te_lines = 0; let te_shake = 0; let te_particles = []; let te_interval = null;
+        const te_cols = 10; const te_rows = 20; const te_blockSize = 30; 
+        const tetrominoes = [ [], [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]], [[2,0,0], [2,2,2], [0,0,0]], [[0,0,3], [3,3,3], [0,0,0]], [[4,4], [4,4]], [[0,5,5], [5,5,0], [0,0,0]], [[0,6,0], [6,6,6], [0,0,0]], [[7,7,0], [0,7,7], [0,0,0]] ];
+        const te_colors = [null, '#0ea5e9', '#3b82f6', '#f59e0b', '#eab308', '#22c55e', '#a855f7', '#ef4444'];
+
+        let bgm = document.getElementById('bgm');
+        bgm.volume = 0.4; 
+        bgm.play().catch(e => console.log("Audio blocked:", e));
+        let bgmStarted = false;
+
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; cx = canvas.width / 2; cy = canvas.height / 2; });
+
+        // ==========================================
+        // HARDWARE INPUT ROUTER
+        // ==========================================
+        socket.on('game_input', (data) => {
+            const cmd = data.command;
+            const now = Date.now();
+
+            if (isGameOver) {
+                if (cmd === "KNOB:RIGHT" || cmd === "KNOB:LEFT") {
+                    document.getElementById(`go-opt-${goSelection}`).classList.remove('selected');
+                    document.getElementById(`go-opt-${goSelection}`).innerText = document.getElementById(`go-opt-${goSelection}`).innerText.replace(/▶ | ◀/g, '  ');
+                    if (cmd === "KNOB:RIGHT") goSelection = (goSelection + 1) % totalGoOpts;
+                    if (cmd === "KNOB:LEFT") goSelection = (goSelection - 1 + totalGoOpts) % totalGoOpts;
+                    document.getElementById(`go-opt-${goSelection}`).classList.add('selected');
+                    document.getElementById(`go-opt-${goSelection}`).innerText = `▶ ${document.getElementById(`go-opt-${goSelection}`).innerText.trim()} ◀`;
+                }
+                if (cmd === "KNOB:PRESS") {
+                    if (goSelection === 0) {
+                        document.getElementById('game-over').classList.add('hidden');
+                        isGameOver = false;
+                        bgm.play().catch(e => console.log(e));
+                        if (activeState === 'TURRET') startTurretGame();
+                        if (activeState === 'TETRIS') startTetrisGame();
+                        if (activeState === 'BURGER') startBurgerGame();
+                    } else if (goSelection === 1) returnToMenu();
+                }
+                return;
+            }
+
+            if (isPaused) {
+                if (cmd === "KNOB:RIGHT" || cmd === "KNOB:LEFT") {
+                    document.getElementById(`pause-opt-${pauseSelection}`).classList.remove('selected');
+                    document.getElementById(`pause-opt-${pauseSelection}`).innerText = document.getElementById(`pause-opt-${pauseSelection}`).innerText.replace(/▶ | ◀/g, '  ');
+                    if (cmd === "KNOB:RIGHT") pauseSelection = (pauseSelection + 1) % totalPauseOpts;
+                    if (cmd === "KNOB:LEFT") pauseSelection = (pauseSelection - 1 + totalPauseOpts) % totalPauseOpts;
+                    document.getElementById(`pause-opt-${pauseSelection}`).classList.add('selected');
+                    document.getElementById(`pause-opt-${pauseSelection}`).innerText = `▶ ${document.getElementById(`pause-opt-${pauseSelection}`).innerText.trim()} ◀`;
+                }
+                if (cmd === "KNOB:PRESS") {
+                    if (pauseSelection === 0) togglePause();
+                    if (pauseSelection === 1) { 
+                        togglePause();
+                        if (activeState === 'TURRET') startTurretGame();
+                        if (activeState === 'TETRIS') startTetrisGame();
+                        if (activeState === 'BURGER') startBurgerGame();
+                    }
+                    if (pauseSelection === 2) { togglePause(); returnToMenu(); }
+                }
+                return;
+            }
+
+            if (activeState === 'MENU') {
+                if (cmd === "KNOB:RIGHT" || cmd === "KNOB:LEFT") {
+                    document.getElementById(`menu-opt-${menuSelection}`).classList.remove('selected');
+                    document.getElementById(`menu-opt-${menuSelection}`).innerText = document.getElementById(`menu-opt-${menuSelection}`).innerText.replace(/▶ | ◀/g, '  ');
+                    if (cmd === "KNOB:RIGHT") menuSelection = (menuSelection + 1) % totalGames;
+                    if (cmd === "KNOB:LEFT") menuSelection = (menuSelection - 1 + totalGames) % totalGames;
+                    document.getElementById(`menu-opt-${menuSelection}`).classList.add('selected');
+                    document.getElementById(`menu-opt-${menuSelection}`).innerText = `▶ ${document.getElementById(`menu-opt-${menuSelection}`).innerText.trim()} ◀`;
+                    updateMenuHighScore(); 
+                }
+                if (cmd === "KNOB:PRESS") {
+                    if (menuSelection === 0) startTurretGame();
+                    if (menuSelection === 1) startTetrisGame();
+                    if (menuSelection === 2) startBurgerGame();
+                }
+            } 
+            else if (activeState === 'TURRET') {
+                if (cmd === "KNOB:PRESS") { togglePause(); return; }
+                if (cmd === "KNOB:RIGHT") t_angle += 0.15;
+                if (cmd === "KNOB:LEFT") t_angle -= 0.15;
+                if (cmd === "BTN:1" && now - t_lastFire1 > 150) {
+                    t_bullets.push({ x: cx, y: cy, vx: Math.cos(t_angle)*15, vy: Math.sin(t_angle)*15, size: 6, color: '#fde047', dmg: 1 });
+                    t_lastFire1 = now;
+                }
+                if (cmd === "BTN:2" && now - t_lastFire2 > 800) {
+                    t_bullets.push({ x: cx, y: cy, vx: Math.cos(t_angle)*8, vy: Math.sin(t_angle)*8, size: 20, color: '#38bdf8', dmg: 5, pierce: true });
+                    t_lastFire2 = now;
+                }
+                if (cmd === "BTN:3" && t_emps > 0) {
+                    t_emps--; document.getElementById('hud-stat-3').innerText = `NETS: ${t_emps}`;
+                    t_enemies = []; triggerVisuals('', 'LED:BLUE', '');
+                    socket.emit('hardware_command', { command: 'EARS:SHAKE' }); 
+                    createParticles(cx, cy, 150, '#38bdf8');
+                }
+            }
+            else if (activeState === 'TETRIS') {
+                if (cmd === "KNOB:PRESS") { togglePause(); return; }
+                if (cmd === "KNOB:RIGHT") te_move(1, 0);
+                if (cmd === "KNOB:LEFT") te_move(-1, 0);
+                if (cmd === "BTN:1") te_rotate();
+                if (cmd === "BTN:2" || cmd === "BTN:3") te_hardDrop(); 
+            }
+            else if (activeState === 'BURGER') {
+                if (cmd === "KNOB:PRESS") { togglePause(); return; }
+                let speed = b_overdrive > 0 ? 60 : 35; 
+                if (cmd === "KNOB:RIGHT") b_player.x = Math.min(canvas.width - 60, b_player.x + speed);
+                if (cmd === "KNOB:LEFT") b_player.x = Math.max(60, b_player.x - speed);
+                if (cmd === "BTN:1") {
+                    for (let i = b_items.length - 1; i >= 0; i--) {
+                        if (Math.abs(b_items[i].x - b_player.x) < 80 && b_items[i].y > canvas.height/2) {
+                            createParticles(b_items[i].x, b_items[i].y, 20, b_items[i].color);
+                            b_items.splice(i, 1);
+                            socket.emit('hardware_command', { command: 'EARS:SHAKE' }); 
+                            break;
+                        }
+                    }
+                }
+                if (cmd === "BTN:3" && b_overdrive <= 0) { 
+                    b_overdrive = 180; 
+                    document.getElementById('game-hud-center').classList.remove('hidden');
+                    socket.emit('hardware_command', { command: 'LED:CYAN' }); 
+                }
+            }
+        });
+
+        // ==========================================
+        // STATE MANAGERS & LEADERBOARD CHECK
+        // ==========================================
+        function togglePause() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                document.getElementById('pause-screen').classList.remove('hidden');
+                document.getElementById(`pause-opt-${pauseSelection}`).classList.remove('selected');
+                document.getElementById(`pause-opt-${pauseSelection}`).innerText = document.getElementById(`pause-opt-${pauseSelection}`).innerText.replace(/▶ | ◀/g, '  ');
+                pauseSelection = 0; document.getElementById(`pause-opt-0`).classList.add('selected'); document.getElementById(`pause-opt-0`).innerText = `▶ RESUME ◀`;
+            } else { 
+                document.getElementById('pause-screen').classList.add('hidden'); 
+            }
+        }
+
+        function triggerGameOver(titleText) {
+            isGameOver = true;
+            bgm.pause();
+            socket.emit('game_over_music'); 
+            
+            let currentScore = 0;
+            if (activeState === 'TURRET') currentScore = t_score;
+            if (activeState === 'TETRIS') currentScore = te_score;
+            if (activeState === 'BURGER') currentScore = b_score;
+
+            const goTitle = document.getElementById('go-title');
+            const goBox = document.getElementById('game-over');
+
+            if (currentScore > 0 && currentScore > (highScores[activeState] || 0)) {
+                socket.emit('submit_score', { game: activeState, score: currentScore });
+                goTitle.innerHTML = `🏆 NEW HIGH SCORE! 🏆<br>${currentScore}`;
+                goTitle.style.color = '#fde047'; 
+                goTitle.style.textShadow = '6px 6px 0 #b45309';
+                goBox.style.background = 'rgba(21, 128, 61, 0.9)';
+                goBox.style.borderColor = '#166534';
+                triggerVisuals('flash-green', 'LED:RGB:255,215,0', 'EARS:SHAKE'); 
+            } else {
+                goTitle.innerHTML = titleText;
+                goTitle.style.color = '#f87171'; 
+                goTitle.style.textShadow = '6px 6px 0 #450a0a';
+                goBox.style.background = 'rgba(127, 29, 29, 0.9)'; 
+                goBox.style.borderColor = '#b91c1c';
+            }
+            
+            document.getElementById(`go-opt-${goSelection}`).classList.remove('selected');
+            document.getElementById(`go-opt-${goSelection}`).innerText = document.getElementById(`go-opt-${goSelection}`).innerText.replace(/▶ | ◀/g, '  ');
+            goSelection = 0; document.getElementById(`go-opt-0`).classList.add('selected'); document.getElementById(`go-opt-0`).innerText = `▶ TRY AGAIN ◀`;
+            goBox.classList.remove('hidden');
+        }
+
+        function returnToMenu() {
+            activeState = 'MENU'; isGameOver = false; isPaused = false;
+            
+            bgm.play().catch(e => console.log("Audio blocked:", e));
+            if (bgmStarted) bgm.play();
+            
+            clearInterval(t_spawner); clearTimeout(te_interval); 
+            clearTimeout(b_spawner); clearInterval(b_timer_interval); 
+            
+            document.getElementById('game-over').classList.add('hidden'); document.getElementById('pause-screen').classList.add('hidden');
+            document.getElementById('game-hud-top-left').classList.add('hidden'); document.getElementById('game-hud-top-right').classList.add('hidden'); document.getElementById('game-hud-center').classList.add('hidden');
+            document.getElementById('menu-screen').classList.remove('hidden');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            triggerVisuals('', 'LED:OFF', 'EARS:UP');
+        }
+
+        function triggerVisuals(cssClass, ledCmd, earCmd) {
+            if(cssClass) { document.body.classList.remove(cssClass); void document.body.offsetWidth; document.body.classList.add(cssClass); }
+            if(ledCmd) socket.emit('hardware_command', { command: ledCmd });
+            if(earCmd) socket.emit('hardware_command', { command: earCmd });
+        }
+
+        function updateRobotHealthLED(currentHealth, maxHealth) {
+            let healthPercent = Math.max(0, currentHealth / maxHealth);
+            let r = Math.floor((1 - healthPercent) * 255);
+            let g = Math.floor(healthPercent * 255);
+            socket.emit('hardware_command', { command: `LED:RGB:${r},${g},0` });
+        }
+
+        function createParticles(x, y, count, color) {
+            let targetArray = activeState === 'BURGER' ? b_particles : (activeState === 'TETRIS' ? te_particles : t_particles);
+            for (let i = 0; i < count; i++) targetArray.push({ x: x, y: y, vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15, life: 1.0, color: color });
+        }
+
+        // ==========================================
+        // 1. JELLYFISH DEFENDER LOGIC (Unchanged)
+        // ==========================================
+        function startTurretGame() {
+            t_angle = 0; t_health = 100; t_score = 0; t_emps = 3;
+            t_bullets = []; t_enemies = []; t_particles = []; t_lastFire1 = 0; t_lastFire2 = 0;
+            document.getElementById('hud-stat-1').innerText = `HP: ${t_health}`; document.getElementById('hud-stat-1').style.color = "#4ade80";
+            document.getElementById('hud-stat-2').innerText = `SCORE: ${t_score}`; document.getElementById('hud-stat-3').innerText = `NETS: ${t_emps}`;
+            document.getElementById('hud-stat-3').classList.remove('hidden'); updateRobotHealthLED(t_health, 100); 
+            document.getElementById('menu-screen').classList.add('hidden'); document.getElementById('game-hud-top-left').classList.remove('hidden'); document.getElementById('game-hud-top-right').classList.remove('hidden');
+            activeState = 'TURRET';
+            clearInterval(t_spawner);
+            t_spawner = setInterval(() => {
+                if (isGameOver || isPaused) return; 
+                let angle = Math.random() * Math.PI * 2; let rad = Math.max(canvas.width, canvas.height) / 2 + 50; let spd = 1.5 + (t_score / 500); let hp = Math.random() > 0.8 ? 3 : 1; 
+                t_enemies.push({ x: cx + Math.cos(angle)*rad, y: cy + Math.sin(angle)*rad, vx: -Math.cos(angle)*spd, vy: -Math.sin(angle)*spd, size: hp===3?30:20, hp: hp, color: hp===3?'#ef4444':'#f472b6' });
+            }, 800);
+        }
+
+        function drawTurret() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath(); ctx.arc(cx, cy, 45, 0, Math.PI * 2); ctx.fillStyle = '#ea580c'; ctx.fill();
+            ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2); ctx.fillStyle = '#fde047'; ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(t_angle)*70, cy + Math.sin(t_angle)*70); ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 14; ctx.lineCap = 'round'; ctx.stroke();
+            for (let i = t_bullets.length - 1; i >= 0; i--) {
+                let b = t_bullets[i]; b.x += b.vx; b.y += b.vy;
+                ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2); ctx.fillStyle = b.color; ctx.fill();
+                if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) t_bullets.splice(i, 1);
+            }
+            for (let i = t_particles.length - 1; i >= 0; i--) {
+                let p = t_particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 6, 6); ctx.globalAlpha = 1.0;
+                if (p.life <= 0) t_particles.splice(i, 1);
+            }
+            for (let i = t_enemies.length - 1; i >= 0; i--) {
+                let e = t_enemies[i]; e.x += e.vx; e.y += e.vy;
+                ctx.beginPath(); ctx.arc(e.x, e.y, e.size, Math.PI, 0); ctx.fillStyle = e.color; ctx.fill();
+                ctx.fillRect(e.x - e.size/2, e.y, 4, e.size); ctx.fillRect(e.x + e.size/2 - 4, e.y, 4, e.size);
+                if (Math.hypot(e.x - cx, e.y - cy) < 45 + e.size) {
+                    t_health -= 10; document.getElementById('hud-stat-1').innerText = `HP: ${t_health}`;
+                    updateRobotHealthLED(t_health, 100); triggerVisuals('flash-red', null, 'EARS:FLAT'); t_enemies.splice(i, 1); createParticles(cx, cy, 30, '#ef4444');
+                    if (t_health <= 0) triggerGameOver("PINEAPPLE<br>DESTROYED!"); continue;
+                }
+                for (let j = t_bullets.length - 1; j >= 0; j--) {
+                    let b = t_bullets[j];
+                    if (Math.hypot(e.x - b.x, e.y - b.y) < e.size + b.size) {
+                        e.hp -= b.dmg; if (!b.pierce) t_bullets.splice(j, 1); 
+                        if (e.hp <= 0) {
+                            t_score += 10; document.getElementById('hud-stat-2').innerText = `SCORE: ${t_score}`;
+                            createParticles(e.x, e.y, 20, e.color); t_enemies.splice(i, 1);
+                        } else { e.color = '#fff'; setTimeout(() => { if(t_enemies[i]) t_enemies[i].color = '#ef4444'; }, 50); }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // 2. CHUM BUCKET BLOCKS (TETRIS) LOGIC
+        // ==========================================
+        function te_collide(px, py, matrix) {
+            for (let r = 0; r < matrix.length; r++) {
+                for (let c = 0; c < matrix[r].length; c++) {
+                    if (!matrix[r][c]) continue;
+                    let nx = px + c;
+                    let ny = py + r;
+                    if (nx < 0 || nx >= te_cols || ny >= te_rows || (ny >= 0 && te_grid[ny][nx])) return true;
+                }
+            }
+            return false;
+        }
+
+        function te_rotate() {
+            if(!te_piece || isPaused || isGameOver) return;
+            let m = te_piece.matrix;
+            let r = m[0].map((val, index) => m.map(row => row[index]).reverse());
+            if (!te_collide(te_piece.x, te_piece.y, r)) {
+                te_piece.matrix = r;
+                socket.emit('hardware_command', { command: 'LED:CYAN' }); 
+            }
+        }
+
+        function te_move(dx, dy) {
+            if(!te_piece || isPaused || isGameOver) return false;
+            if (!te_collide(te_piece.x + dx, te_piece.y + dy, te_piece.matrix)) {
+                te_piece.x += dx;
+                te_piece.y += dy;
+                return true;
+            }
+            return false;
+        }
+
+        function te_hardDrop() {
+            if(!te_piece || isPaused || isGameOver) return;
+            while(te_move(0, 1)) {} 
+            te_shake = 5; 
+            te_merge(); 
+        }
+
+        function te_merge() {
+            let offsetX = cx - (te_cols * te_blockSize) / 2;
+            let offsetY = cy - (te_rows * te_blockSize) / 2 + 20; 
+
+            for (let r = 0; r < te_piece.matrix.length; r++) {
+                for (let c = 0; c < te_piece.matrix[r].length; c++) {
+                    if (te_piece.matrix[r][c]) {
+                        if (te_piece.y + r < 0) {
+                            triggerGameOver(`BLOCKS OVERFLOW!<br>SCORE: ${te_score}`);
+                            return;
+                        }
+                        te_grid[te_piece.y + r][te_piece.x + c] = te_piece.matrix[r][c];
+                    }
+                }
+            }
+            
+            let linesCleared = 0;
+            for (let r = te_rows - 1; r >= 0; r--) {
+                if (te_grid[r].every(val => val !== 0)) {
+                    for(let c=0; c<te_cols; c++) {
+                        createParticles(offsetX + c*te_blockSize + te_blockSize/2, offsetY + r*te_blockSize + te_blockSize/2, 5, te_colors[te_grid[r][c]]);
+                    }
+                    te_grid.splice(r, 1);
+                    te_grid.unshift(new Array(te_cols).fill(0));
+                    linesCleared++;
+                    r++; 
+                }
+            }
+            
+            if (linesCleared > 0) {
+                te_shake = 15; 
+                te_lines += linesCleared;
+                te_score += linesCleared * 100;
+                
+                let newLevel = Math.floor(te_score / 500) + 1;
+                if (newLevel > te_level) {
+                    te_level = newLevel;
+                    socket.emit('hardware_command', { command: 'EARS:SHAKE' }); 
+                }
+                triggerVisuals('flash-green', 'LED:RGB:0,255,0', null);
+            }
+            te_spawn();
+        }
+
+        function te_spawn() {
+            let type = te_next_type;
+            te_next_type = Math.floor(Math.random() * 7) + 1; 
+            
+            te_piece = { x: 3, y: -2, matrix: tetrominoes[type] };
+            if (te_collide(te_piece.x, te_piece.y, te_piece.matrix)) {
+                triggerGameOver(`BLOCKS OVERFLOW!<br>SCORE: ${te_score}`);
+            }
+        }
+        
+        function te_tick() {
+            if (activeState !== 'TETRIS' || isGameOver) return; 
+            if (!isPaused) {
+                if (!te_move(0, 1)) te_merge(); 
+            }
+            let speed = Math.max(100, 800 - ((te_level - 1) * 120));
+            te_interval = setTimeout(te_tick, speed);
+        }
+
+        function startTetrisGame() {
+            te_score = 0;
+            te_level = 1;
+            te_lines = 0;
+            te_shake = 0;
+            te_particles = [];
+            te_grid = Array.from({length: te_rows}, () => new Array(te_cols).fill(0));
+            
+            te_next_type = Math.floor(Math.random() * 7) + 1; 
+            
+            // THE FIX: Hide the standard HTML HUD entirely when playing Tetris!
+            document.getElementById('hud-stat-3').classList.add('hidden');
+            document.getElementById('game-hud-top-left').classList.add('hidden');
+            document.getElementById('game-hud-top-right').classList.add('hidden');
+            document.getElementById('menu-screen').classList.add('hidden');
+            
+            activeState = 'TETRIS';
+
+            te_spawn();
+            clearTimeout(te_interval);
+            te_tick(); 
+            
+            triggerVisuals('', 'LED:OFF', 'EARS:UP');
+        }
+        
+        function drawBevelBlock(x, y, colorIdx, alpha = 1.0) {
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = te_colors[colorIdx];
+            ctx.fillRect(x, y, te_blockSize, te_blockSize);
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.fillRect(x, y, te_blockSize, 4);
+            ctx.fillRect(x, y, 4, te_blockSize);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(x, y + te_blockSize - 4, te_blockSize, 4);
+            ctx.fillRect(x + te_blockSize - 4, y, 4, te_blockSize);
+            ctx.globalAlpha = 1.0;
+        }
+
+        function drawTetris() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (te_shake > 0) {
+                ctx.save();
+                ctx.translate((Math.random()-0.5)*te_shake, (Math.random()-0.5)*te_shake);
+                te_shake--;
+            }
+            
+            let offsetX = cx - (te_cols * te_blockSize) / 2;
+            let offsetY = cy - (te_rows * te_blockSize) / 2 + 20; 
+
+            // =====================================
+            // LEFT PANEL: CUSTOM ARCADE STATS
+            // =====================================
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+            ctx.fillRect(offsetX - 200, offsetY, 170, 360);
+            ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2; // Gold border
+            ctx.strokeRect(offsetX - 200, offsetY, 170, 360);
+            
+            ctx.textAlign = "center";
+            // High Score
+            ctx.fillStyle = '#fde047'; ctx.font = "18px Orbitron"; 
+            ctx.fillText("HIGH SCORE", offsetX - 115, offsetY + 35);
+            ctx.fillStyle = '#fff'; ctx.font = "24px Orbitron";
+            // Live Record updating!
+            let displayHigh = Math.max(highScores['TETRIS'] || 0, te_score);
+            ctx.fillText(displayHigh, offsetX - 115, offsetY + 70);
+
+            // Score
+            ctx.fillStyle = '#38bdf8'; ctx.font = "18px Orbitron";
+            ctx.fillText("SCORE", offsetX - 115, offsetY + 125);
+            ctx.fillStyle = '#fff'; ctx.font = "24px Orbitron";
+            ctx.fillText(te_score, offsetX - 115, offsetY + 160);
+
+            // Level
+            ctx.fillStyle = '#4ade80'; ctx.font = "18px Orbitron";
+            ctx.fillText("LEVEL", offsetX - 115, offsetY + 215);
+            ctx.fillStyle = '#fff'; ctx.font = "24px Orbitron";
+            ctx.fillText(te_level, offsetX - 115, offsetY + 250);
+
+            // Lines
+            ctx.fillStyle = '#f472b6'; ctx.font = "18px Orbitron";
+            ctx.fillText("LINES", offsetX - 115, offsetY + 305);
+            ctx.fillStyle = '#fff'; ctx.font = "24px Orbitron";
+            ctx.fillText(te_lines, offsetX - 115, offsetY + 340);
+            ctx.textAlign = "left"; // reset
+
+            // =====================================
+            // RIGHT PANEL: CONTROLS & NEXT
+            // =====================================
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+            ctx.fillRect(offsetX + te_cols * te_blockSize + 30, offsetY, 170, 160);
+            ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 2;
+            ctx.strokeRect(offsetX + te_cols * te_blockSize + 30, offsetY, 170, 160);
+            
+            ctx.fillStyle = '#4ade80'; ctx.font = "18px Orbitron"; ctx.textAlign = "center";
+            ctx.fillText("NEXT", offsetX + te_cols * te_blockSize + 115, offsetY + 30);
+            ctx.textAlign = "left"; // reset
+
+            if (te_next_type) {
+                let nextMat = tetrominoes[te_next_type];
+                let pieceWidth = nextMat[0].length * te_blockSize;
+                let startX = offsetX + te_cols * te_blockSize + 30 + (170 - pieceWidth) / 2;
+                let startY = offsetY + 60;
+                for (let r = 0; r < nextMat.length; r++) {
+                    for (let c = 0; c < nextMat[r].length; c++) {
+                        if (nextMat[r][c]) {
+                            drawBevelBlock(startX + c * te_blockSize, startY + r * te_blockSize, nextMat[r][c]);
+                        }
+                    }
+                }
+            }
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+            ctx.fillRect(offsetX + te_cols * te_blockSize + 30, offsetY + 190, 170, 160);
+            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2;
+            ctx.strokeRect(offsetX + te_cols * te_blockSize + 30, offsetY + 190, 170, 160);
+            
+            ctx.fillStyle = '#fde047'; ctx.font = "18px Orbitron"; ctx.textAlign = "center";
+            ctx.fillText("CONTROLS", offsetX + te_cols * te_blockSize + 115, offsetY + 225);
+            ctx.textAlign = "left"; // reset
+            
+            ctx.fillStyle = '#fff'; ctx.font = "14px Orbitron";
+            ctx.fillText("◄ KNOB ►: MOVE", offsetX + te_cols * te_blockSize + 40, offsetY + 265);
+            ctx.fillText("BTN 1: ROTATE", offsetX + te_cols * te_blockSize + 40, offsetY + 300);
+            ctx.fillText("BTN 2/3: DROP", offsetX + te_cols * te_blockSize + 40, offsetY + 335);
+
+            // =====================================
+            // THE GAME BOARD
+            // =====================================
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+            ctx.fillRect(offsetX, offsetY, te_cols * te_blockSize, te_rows * te_blockSize);
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 4;
+            ctx.strokeRect(offsetX, offsetY, te_cols * te_blockSize, te_rows * te_blockSize);
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 1;
+            for(let i=1; i<te_cols; i++) {
+                ctx.beginPath(); ctx.moveTo(offsetX + i*te_blockSize, offsetY); ctx.lineTo(offsetX + i*te_blockSize, offsetY + te_rows*te_blockSize); ctx.stroke();
+            }
+            for(let i=1; i<te_rows; i++) {
+                ctx.beginPath(); ctx.moveTo(offsetX, offsetY + i*te_blockSize); ctx.lineTo(offsetX + te_cols*te_blockSize, offsetY + i*te_blockSize); ctx.stroke();
+            }
+
+            for (let r = 0; r < te_rows; r++) {
+                for (let c = 0; c < te_cols; c++) {
+                    if (te_grid[r][c]) {
+                        drawBevelBlock(offsetX + c * te_blockSize, offsetY + r * te_blockSize, te_grid[r][c]);
+                    }
+                }
+            }
+
+            if (te_piece) {
+                let ghostY = te_piece.y;
+                while (!te_collide(te_piece.x, ghostY + 1, te_piece.matrix)) { ghostY++; }
+                
+                for (let r = 0; r < te_piece.matrix.length; r++) {
+                    for (let c = 0; c < te_piece.matrix[r].length; c++) {
+                        if (te_piece.matrix[r][c] && ghostY + r >= 0) {
+                            drawBevelBlock(offsetX + (te_piece.x + c) * te_blockSize, offsetY + (ghostY + r) * te_blockSize, te_piece.matrix[r][c], 0.2);
+                        }
+                    }
+                }
+                
+                for (let r = 0; r < te_piece.matrix.length; r++) {
+                    for (let c = 0; c < te_piece.matrix[r].length; c++) {
+                        if (te_piece.matrix[r][c] && te_piece.y + r >= 0) {
+                            drawBevelBlock(offsetX + (te_piece.x + c) * te_blockSize, offsetY + (te_piece.y + r) * te_blockSize, te_piece.matrix[r][c]);
+                        }
+                    }
+                }
+            }
+            
+            for (let i = te_particles.length - 1; i >= 0; i--) {
+                let p = te_particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 8, 8); ctx.globalAlpha = 1.0;
+                if (p.life <= 0) te_particles.splice(i, 1);
+            }
+            
+            if (te_shake >= 0) ctx.restore();
+        }
+
+        // ==========================================
+        // 3. KRUSTY KRAB RUSH LOGIC (Unchanged)
+        // ==========================================
+        function startBurgerGame() {
+            b_score = 0; b_overdrive = 0; b_timer = 60; 
+            b_player = { x: cx, y: canvas.height - 80, w: 100, h: 30 };
+            b_items = []; b_particles = [];
+            document.getElementById('hud-stat-1').innerText = `TIME: ${b_timer}`; document.getElementById('hud-stat-1').style.color = "#fff";
+            document.getElementById('hud-stat-2').innerText = `SCORE: ${b_score}`; document.getElementById('hud-stat-3').classList.add('hidden');
+            document.getElementById('menu-screen').classList.add('hidden'); document.getElementById('game-hud-top-left').classList.remove('hidden');
+            activeState = 'BURGER';
+            clearInterval(b_timer_interval);
+            b_timer_interval = setInterval(() => {
+                if (isGameOver || isPaused) return; 
+                b_timer--;
+                if (b_timer <= 0) { b_timer = 0; triggerGameOver(`TIME'S UP!<br>SCORE: ${b_score}`); }
+                document.getElementById('hud-stat-1').innerText = `TIME: ${b_timer}`;
+            }, 1000);
+            clearTimeout(b_spawner);
+            function spawnBurgerItem() {
+                if (isGameOver || activeState !== 'BURGER') return;
+                let nextSpawnRate = Math.max(250, 800 - (b_score * 2)); 
+                if (!isPaused) {
+                    let type = Math.random(); let chumChance = Math.min(0.6, 0.2 + (b_score / 1000)); let item = { x: 50 + Math.random()*(canvas.width - 100), y: -50, r: 25, speed: 6 + (b_score/80), color:'', points: 0, isBad: false };
+                    if(type < chumChance) { item.color = '#9333ea'; item.isBad = true; item.label = '🪣'; } 
+                    else if(type < chumChance + 0.3) { item.color = '#78350f'; item.points = 20; item.label = '🥩'; } 
+                    else if(type < chumChance + 0.6) { item.color = '#22c55e'; item.points = 10; item.label = '🥬'; } 
+                    else { item.color = '#eab308'; item.points = 10; item.label = '🧀'; } 
+                    b_items.push(item);
+                }
+                b_spawner = setTimeout(spawnBurgerItem, nextSpawnRate);
+            }
+            spawnBurgerItem(); triggerVisuals('', 'LED:OFF', 'EARS:UP');
+        }
+
+        function drawBurger() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (b_overdrive > 0) {
+                b_overdrive--;
+                if (b_overdrive <= 0) { document.getElementById('game-hud-center').classList.add('hidden'); socket.emit('hardware_command', { command: 'LED:OFF' }); }
+            }
+            ctx.fillStyle = '#64748b'; ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+            for (let i = b_items.length - 1; i >= 0; i--) {
+                let item = b_items[i]; item.y += b_overdrive > 0 ? item.speed * 0.4 : item.speed; 
+                ctx.fillStyle = item.color; ctx.beginPath(); ctx.arc(item.x, item.y, item.r, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.font = "20px Arial"; ctx.fillText(item.label, item.x - 10, item.y + 8);
+                if (Math.abs(item.x - b_player.x) < b_player.w/2 + item.r && Math.abs(item.y - b_player.y) < b_player.h/2 + item.r) {
+                    if (!item.isBad) {
+                        b_score += item.points; document.getElementById('hud-stat-2').innerText = `SCORE: ${b_score}`; triggerVisuals('flash-green', 'LED:RGB:0,255,0', null); createParticles(item.x, item.y, 10, item.color);
+                    } else {
+                        b_timer -= 5; if (b_timer < 0) b_timer = 0; document.getElementById('hud-stat-1').innerText = `TIME: ${b_timer}`;
+                        triggerVisuals('flash-red', 'LED:RGB:255,0,0', 'EARS:FLAT'); socket.emit('hardware_command', { command: 'EARS:SHAKE' }); 
+                        if (b_timer <= 0) triggerGameOver(`OUT OF TIME!<br>SCORE: ${b_score}`);
+                    }
+                    b_items.splice(i, 1);
+                } else if (item.y > canvas.height) { b_items.splice(i, 1); }
+            }
+            for (let i = b_particles.length - 1; i >= 0; i--) {
+                let p = b_particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1.0;
+                if (p.life <= 0) b_particles.splice(i, 1);
+            }
+            ctx.fillStyle = '#d97706'; ctx.beginPath(); ctx.roundRect(b_player.x - b_player.w/2, b_player.y - b_player.h/2, b_player.w, b_player.h, 10); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = "24px Orbitron"; ctx.fillText("🍔", b_player.x - 12, b_player.y + 8);
+        }
+
+        // ==========================================
+        // MASTER RENDER LOOP
+        // ==========================================
+        function masterUpdate() {
+            if (!isGameOver && !isPaused) {
+                if (activeState === 'TURRET') drawTurret();
+                if (activeState === 'TETRIS') drawTetris();
+                if (activeState === 'BURGER') drawBurger();
+            }
+            requestAnimationFrame(masterUpdate);
+        }
+
+        masterUpdate();
+    </script>
+</body>
+</html>
