@@ -18,7 +18,7 @@ NoPants monitors your calendar autonomously. Exactly 5 minutes before a schedule
 ![Calendar After](../Pics_&_Videos/Calendar_After.png)
 
 ### Pomodoro "Study Mode"
-![Study Mode Demo](../Pics_&_Videos/study_mode.mp4)
+<video src="../Pics_&_Videos/study_mode.mp4" controls width="100%"></video>
 
 Triggered by saying *"Study mode"* or *"Pomodoro"*. This function:
 1. Rejects all pending alarms/calendar alerts (Do Not Disturb is set to True).
@@ -34,11 +34,11 @@ NoPants remembers who you are. The LLM extracts specific names, relationships, a
 
 ## 🎮 Entertainment & Media
 
-![Thinking & Voice Syncing](../Pics_&_Videos/self_thinking.mp4)
+<video src="../Pics_&_Videos/self_thinking.mp4" controls width="100%"></video>
 > **Responsive UI:** The robot face synchronizes dynamically with AI output.
 
 ### Custom Web Arcade Dashboard
-![Arcade Web Game](../Pics_&_Videos/play_game.mp4)
+<video src="../Pics_&_Videos/play_game.mp4" controls width="100%"></video>
 
 Built entirely from scratch, NoPants features a dedicated `/game` web route containing custom graphical games:
 * **Tetris**: A classic block-stacking implementation.
@@ -47,12 +47,12 @@ Built entirely from scratch, NoPants features a dedicated `/game` web route cont
 The server maintains a global leaderboard. The underlying hardware buttons on the ESP32 can act as physical pass-through controllers for these web applications!
 
 ### Music Streaming & Queuing Pipeline
-![Search and Play Music](../Pics_&_Videos/search_and_play_song.mp4)
+<video src="../Pics_&_Videos/search_and_play_song.mp4" controls width="100%"></video>
 
 Using `yt-dlp` and `cvlc`, you can ask the robot to "Play [Song]". It bypasses ads and streams the audio buffer immediately. It supports queuing arrays of songs ("play this next") and even audio introspection ("what song is playing right now?").
 
 ### The "Party Trick" Button
-![Party Trick Mode](../Pics_&_Videos/party_trick_mode.mp4)
+<video src="../Pics_&_Videos/party_trick_mode.mp4" controls width="100%"></video>
 
 Pressing the physical Button 3 triggers a party mode. The ESP32 flashes the LEDs hot pink and starts shaking the ears. The AI immediately crafts a bizarre, 1-sentence joke or fun fact based on your personal memories and delivers it with a punchy delivery.
 
@@ -61,17 +61,17 @@ Pressing the physical Button 3 triggers a party mode. The ESP32 flashes the LEDs
 ## 🛠️ Utilities & Smart Home
 
 ### Dynamic DuckDuckGo Searching
-![Web Information Searching](../Pics_&_Videos/web_info_searching.mp4)
+<video src="../Pics_&_Videos/web_info_searching.mp4" controls width="100%"></video>
 
 Using the `DDGS` library, the robot can scrape the top 3 live web results from the past 7 days for any given query. It then feeds the raw text back to the LLM to summarize the findings into a 30-word cartoon snippet.
 
 ### wttr.in Instant Weather
-![Weather Casting Demo](../Pics_&_Videos/weather_casting.mp4)
+<video src="../Pics_&_Videos/weather_casting.mp4" controls width="100%"></video>
 
 By combining the NLP capabilities of the LLM (to extract city names from conversational text) and the lightning-fast API of `wttr.in`, NoPants can provide live temperature checks for any location globally.
 
 ### Dual-Interval Alarm Matrix
-![Timer Check](../Pics_&_Videos/20s_timer_set.mp4)
+<video src="../Pics_&_Videos/20s_timer_set.mp4" controls width="100%"></video>
 
 NoPants maintains a background thread dedicated exclusively to checking an `alarms.json` array. It supports:
 * **Daily/Weekly Alarms**: Pinpoint times like "7 AM every Monday".

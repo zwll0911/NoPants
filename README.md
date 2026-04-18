@@ -9,7 +9,7 @@ Welcome to the central repository for **NoPants**, a DIY, fully-functional, high
 
 ## 📚 The Documentation Base
 
-We've split the documentation up into distinct, detail-heavy pages so you can learn exactly how NoPants operates behind the scenes without scrolling endlessly. Grab a cup of coffee and dive in:
+We've split the documentation up into distinct, detail-heavy pages so you can learn exactly how NoPants operates behind the scenes without scrolling endlessly.
 
 | Documentation Page | Description |
 | :--- | :--- |
@@ -24,24 +24,23 @@ We've split the documentation up into distinct, detail-heavy pages so you can le
 
 See NoPants in action!
 
-![NoPants Demo Reel](Pics_&_Videos/self_introduction.mp4)
-> **Demo:** A quick introduction of NoPants in action!
+<video src="Pics_&_Videos/self_introduction.mp4" controls width="100%"></video>
+
+> **Demo:** NoPants introduces itself — voice, face animations and all.
 
 ---
 
 ## ⚡ Quick Start Cheat Sheet
 
-If you already know what you're doing, here are your commands:
-
-**Web Server Address (Local Network):**  
-`http://<SERVER_IP>:5000`  
+**Web Server Address (Local Network):**
+`http://<SERVER_IP>:5000`
 *(Example: `http://192.168.1.131:5000`)*
 
-**Check ESP32 Hardware Port:**  
+**Check ESP32 Hardware Port:**
 ```bash
 ls /dev/ttyUSB*
 ```
 
-**Chrome Microphone Flag:**  
-To allow microphone accesses over HTTP within your local network, enable this Chrome flag on your external viewing device:
+**Chrome Microphone Flag:**
+To allow microphone accesses over HTTP on your local network, enable this Chrome flag on your viewing device:
 `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
