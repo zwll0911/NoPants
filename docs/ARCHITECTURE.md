@@ -35,7 +35,7 @@ sequenceDiagram
     alt Groq is Online
         GroqCloud-->>FlaskServer: Fast Response Generated
     else Connection Failed!
-        FlaskServer--xGroqCloud: Timeout / Error
+        Note over FlaskServer,GroqCloud: Timeout / API Error
         FlaskServer->>LocalOllama: Fallback Request Triggered!
         LocalOllama-->>FlaskServer: Slower, but reliable response
     end
