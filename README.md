@@ -2,8 +2,8 @@
 
 Welcome to the central repository for **NoPants**, a DIY, fully-functional, highly interactive robotic assistant. Featuring a dual-brain architecture (Cloud LLaMA + Local Ollama), robust hardware integration, and a suite of snarky, productivity-focused smart-assistant tools, NoPants is practically a tabletop JARVIS.
 
-![Main Hero Placeholder](docs/media/placeholder_hero.jpg)
-> **[Placeholder]**: Provide a hero image showing the full physical robot here.
+![NoPants Hero Shot](Pics_&_Videos/Main_hero_pic.jpeg)
+> **Meet NoPants! The ultimate DIY tabletop assistant.**
 
 ---
 
@@ -24,8 +24,8 @@ We've split the documentation up into distinct, detail-heavy pages so you can le
 
 See NoPants in action!
 
-![Demo Reel Video](docs/media/placeholder_demo.mp4)
-> **[Placeholder]**: Provide a final 30-60 second "demo reel" video showcasing the robot talking, the ears shaking, and a user pressing the physical buttons.
+![NoPants Demo Reel](Pics_&_Videos/self_introduction.mp4)
+> **Demo:** A quick introduction of NoPants in action!
 
 ---
 

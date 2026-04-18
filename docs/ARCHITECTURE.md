@@ -14,7 +14,7 @@ NoPants isn't just a chatbot; it's a completely autonomous task-execution engine
 | **Voice Engine** | Piper TTS | Generates high-quality, completely offline text-to-speech audio with auto-healing models. |
 | **Audio Processing** | SoX (`play`), `cvlc`, ALSA (`amixer`) | Pitch-shifts the Piper TTS to sound like a cartoon. Streams YouTube audio and controls system volume. |
 | **Web Frontend** | HTML/Vanilla JS, Kiosk Chromium | Renders the animated face, the dashboard, and custom arcade games in full-screen. |
-| **Microcontroller** | ESP32 | Controls physical servos, RGB LEDs, and accepts rotary/button inputs via Serial (`/dev/ttyUSB1`). |
+| **Microcontroller** | ESP32 | Controls physical servos, RGB LEDs, and accepts rotary/button inputs via Serial (`/dev/ttyUSB0`). |
 
 ---
 
@@ -45,9 +45,19 @@ sequenceDiagram
 
 ---
 
+## 🏗️ The 4-Tier Audio Router
+
+Every time the user speaks, the server processes the `user_prompt` through an explicit, heavily-optimized 4-Tier Routing System (`handle_llm`) before triggering the LLMs:
+1. **Tier 1 (Instant Overrides):** Hardcoded killswitches (`"stop music"`, `"shut up"`) that instantly terminate subprocesses to save system resources.
+2. **Tier 2 (Hardcoded Apps):** Direct routing for non-LLM utility pipelines like `/game` transitions, `"study mode"`, or instant `wttr.in` weather checks.
+3. **Tier 3 (Master Task Agent):** Complex logic pipeline (see below). Triggered by keyword regex maps (`["light", "calendar", "queue", ...]`).
+4. **Tier 4 (Default Conversation):** If no keywords match, the prompt gets sent to the standard conversational LLM.
+
+---
+
 ## 🦾 The "Master Task Agent" Pipeline
 
-When you ask NoPants to do something complex, it doesn't just "talk back". It uses a separate LLM call dedicated to extracting intent. The Master Agent converts your sentence into an explicit array of JSON tasks.
+When you ask NoPants to do something complex (Tier 3), it doesn't just "talk back". It uses a separate LLM call dedicated to extracting intent. The Master Agent converts your sentence into an explicit array of JSON tasks.
 
 ```mermaid
 graph TD
@@ -57,8 +67,8 @@ graph TD
     C -->|TYPE: SMART_LIGHT| D[Send 'HOME:LIGHT:COLOR:BLUE' to ESP32]
     C -->|TYPE: PLAY_MUSIC| E[Fetch Audio via yt-dlp]
     C -->|TYPE: SET_TIMER| F[Start Visual Web UI Timer]
-    C -->|TYPE: REMEMBER_FACT| G[Save to user_memory.json]
-    C -->|TYPE: CHECK_CALENDAR| H[Ping Google Workspace Auth]
+    C -->|TYPE: CREATE_CALENDAR_EVENT| G[Push Date/Time to Google OAuth]
+    C -->|TYPE: CHECK_CALENDAR| H[Read User Schedule]
     
     D --> I[Wait for Hardware confirmation]
     E --> J[Pass stream to vlc]
