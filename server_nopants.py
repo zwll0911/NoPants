@@ -72,7 +72,7 @@ def load_config():
 
 # --- 1. SETUP HARDWARE ---
 try:
-    esp32 = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
+    esp32 = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
     print("ESP32 Connected to Web Server!")
     time.sleep(2)
 except Exception as e:
@@ -622,15 +622,19 @@ def extract_master_queue(user_text, history):
     9. "REMEMBER_FACT" - Requires a "fact" string. Use this ANY TIME the user tells you personal information, preferences, names, or things to remember long-term. Extract the core fact.
     10. "CHECK_CALENDAR" - Requires a "date" string in YYYY-MM-DD format. 
         Use the CURRENT DATE & TIME provided above to calculate relative dates (e.g., tomorrow, next Friday).
-    11. "SET_ALARM" - For specific daily/weekly times (e.g., "7 AM every weekday"). Requires "time" (24-hour "HH:MM"), "days" (Array of full day names, e.g., ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]), and "label".
-    12. "SET_INTERVAL" - For repeating intervals (e.g., "remind me to drink water every hour"). Requires "minutes" (integer) and "label".
-    13. "QUEUE_MUSIC" - Requires a "query" string. Use this ONLY if the user says "add X to the queue" or "play X next". 
-    14. "CHECK_MUSIC" - Use this if the user asks "what song is this?" or "what is playing right now?". Requires NO parameters.
+    11. "CREATE_CALENDAR_EVENT" - Requires "title" (string) and "time" (YYYY-MM-DD HH:MM). Use this anytime the user asks to schedule, record, or add a meeting/event to their calendar!
+    12. "SET_ALARM" - For specific daily/weekly times (e.g., "7 AM every weekday"). Requires "time" (24-hour "HH:MM"), "days" (Array of full day names, e.g., ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]), and "label".
+    13. "SET_INTERVAL" - For repeating intervals (e.g., "remind me to drink water every hour"). Requires "minutes" (integer) and "label".
+    14. "QUEUE_MUSIC" - Requires a "query" string. Use this ONLY if the user says "add X to the queue" or "play X next". 
+    15. "CHECK_MUSIC" - Use this if the user asks "what song is this?" or "what is playing right now?". Requires NO parameters.
     
     CRITICAL RULES: 
     - Look at the Recent Conversation context to understand what the user means.
     - GENERAL QUESTIONS: If the user asks a general question about your capabilities (e.g., "what can you do?"), summarize your skills in the "spoken_reply" and leave the "commands" array EMPTY. Do NOT use the SPEAK task if you are already using spoken_reply!
-    - Do NOT invent tasks.
+    - DO NOT invent extra steps. Only perform the specific action the user requested.
+    - If the user asks to "record," "add," or "schedule," ONLY use CREATE_CALENDAR_EVENT. 
+    - DO NOT use CHECK_CALENDAR unless the user explicitly asks to "check," "see," or "read" their schedule.
+    - If scheduling a meeting, ALWAYS use "CREATE_CALENDAR_EVENT". Do NOT use "SET_ALARM" for meetings.
 
     Respond ONLY with a valid JSON object formatted exactly like this:
     {{
@@ -645,6 +649,7 @@ def extract_master_queue(user_text, history):
         {{"type": "UNSUPPORTED", "text": "I don't have a tool to open YouTube. You should add a Python subprocess command to launch chromium-browser to youtube.com!"}},
         {{"type": "REMEMBER_FACT", "fact": "User's dog is named Happy"}},
         {{"type": "CHECK_CALENDAR", "date": "2026-04-18"}}
+        {{"type": "CREATE_CALENDAR_EVENT", "title": "Robotics Meeting", "time": "2026-04-19 11:00"}}
       ]
     }}
     """
@@ -785,384 +790,294 @@ def pomodoro_finished():
     send_to_hardware("LED:RGB:0,255,0") # Green!
     speak("Pomodoro complete! Great job. Time for a 5 minute break!")
 
-# --- 6. VOICE COMMAND ROUTER ---
+# --- 6. VOICE COMMAND ROUTER (THE TRAFFIC COP) ---
 @socketio.on('llm_request')
 def handle_llm(data):
-    global music_process, do_not_disturb, smart_home_status, chat_history
+    global music_process, do_not_disturb, music_queue
 
     user_prompt = data['prompt'].lower()
     print(f"Web User: {user_prompt}")
-    
-    queue_triggers = ["light", "timer", "wait", "then", "music", "song", "play", "queue", "next", "what is playing", "what song", "search", "news", "today", "who is", "what is", "open", "launch", "start", "can you", "remember", "my", "i like", "i love", "my name", "calendar", "events", "schedule", "wake me up", "remind me", "alarm", "every"]
 
-    # - HARDWARE OVERRIDES (Instant) -
+    # ==========================================
+    # TIER 1: INSTANT HARDWARE OVERRIDES
+    # ==========================================
     if "stop music" in user_prompt or "shut up" in user_prompt:
         do_not_disturb = False 
-        
-        # Nuke the queue so it doesn't instantly play the next song!
         music_queue.clear() 
-        
         if music_process:
             music_process.terminate()
             music_process = None
-        
         socketio.emit('music_stop')
         socketio.start_background_task(speak, "Music stopped.")
         return
         
-    # ---> POMODORO STUDY MODE <---
-    elif "study mode" in user_prompt or "pomodoro" in user_prompt:
-        do_not_disturb = True
-        
-        socketio.start_background_task(speak, "Study mode activated. 25 minutes on the clock. Focus up!")
-        send_to_hardware("LED:RGB:150,50,0") 
-        
-        # Send the Lo-Fi beats through the NEW Queue Engine!
-        music_queue.clear()
-        music_queue.append("lofi hip hop radio beats to relax study to")
-        socketio.start_background_task(play_next_in_queue)
-        
-        socketio.emit('start_visual_timer', {'seconds': 1500})
-        threading.Timer(1500.0, pomodoro_finished).start()
-        return
-
-    # ---> INSTANT WEATHER CHECK (WTTR.IN) <---
-    elif "weather" in user_prompt:
-        send_to_hardware("LED:CYAN")
-        
-        def process_weather():
-            try:
-                # 1. Ask Groq to figure out the location (Default to Nibong Tebal)
-                loc_prompt = f"Extract the city name from this request: '{user_prompt}'. If no city is mentioned, reply ONLY with 'Nibong Tebal'. Do not say anything else."
-                loc_response = groq_client.chat.completions.create(
-                    messages=[{"role": "user", "content": loc_prompt}],
-                    model="llama-3.1-8b-instant",
-                    temperature=0.0 
-                )
-                location = loc_response.choices[0].message.content.strip()
-                print(f"Weather Target Location: {location}")
-                
-                # 2. Instantly grab the weather from wttr.in (No scraping needed!)
-                weather_data = requests.get(f"https://wttr.in/{location.replace(' ', '+')}?format=%C,+%t", timeout=5).text.strip()
-                print(f"Live Weather Data: {weather_data}")
-
-                # 3. Give this raw data to Groq to make it sound natural
-                prompt = f"The user asked for the weather in {location}. The live data says: {weather_data}. Tell the user this in a fun, energetic cartoon robot voice. Keep it under 20 words!"
-                
-                chat_completion = groq_client.chat.completions.create(
-                    messages=[
-                        {"role": "system", "content": "You are NoPants, a highly energetic robot."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    model="llama-3.1-8b-instant",
-                    temperature=0.7 
-                )
-                answer = chat_completion.choices[0].message.content
-                
-                # Save to short-term memory so he remembers the context
-                chat_history.append({"role": "user", "content": f"What is the weather in {location}?"})
-                chat_history.append({"role": "assistant", "content": answer})
-                
-                speak(answer)
-                
-            except Exception as e:
-                print(f"Weather Error: {e}")
-                speak("Barnacles! My weather antenna got struck by lightning. I can't check right now.")
-                
-        socketio.start_background_task(process_weather)
-        return
-
     if "sleep" in user_prompt or "relax" in user_prompt:
         socketio.start_background_task(speak, "Going back to sleep.")
         return
-    elif "play" in user_prompt and "game" in user_prompt:
+        
+    if "play" in user_prompt and "game" in user_prompt:
         socketio.start_background_task(speak, "Booting up NoPants OS. Grab the knob.")
         switch_kiosk('/game')
         return
-    elif "exit" in user_prompt and "game" in user_prompt:
+        
+    if "exit" in user_prompt and "game" in user_prompt:
         socketio.start_background_task(speak, "Returning to base operation.")
         switch_kiosk('/face')
         return
 
-    # - CALENDAR OVERRIDE -
-    elif "add to calendar" in user_prompt or "schedule a meeting" in user_prompt or "create an event" in user_prompt:
+    # ==========================================
+    # TIER 2: HARDCODED APPS (Pomodoro & Weather)
+    # ==========================================
+    if "study mode" in user_prompt or "pomodoro" in user_prompt:
+        do_not_disturb = True
+        socketio.start_background_task(speak, "Study mode activated. 25 minutes on the clock. Focus up!")
+        send_to_hardware("LED:RGB:150,50,0") 
+        music_queue.clear()
+        music_queue.append("lofi hip hop radio beats to relax study to")
+        socketio.start_background_task(play_next_in_queue)
+        socketio.emit('start_visual_timer', {'seconds': 1500})
+        threading.Timer(1500.0, pomodoro_finished).start()
+        return
+
+    if "weather" in user_prompt:
         send_to_hardware("LED:CYAN")
-        socketio.start_background_task(speak, "Let me check my schedule. Give me a second.")
+        socketio.start_background_task(process_weather_logic, user_prompt)
+        return
+
+    # ==========================================
+    # TIER 3: THE MASTER TASK AGENT
+    # ==========================================
+    # If the prompt contains any of these words, route it to the advanced JSON Task Agent
+    queue_triggers = [
+        "light", "timer", "wait", "then", "music", "song", "play", "queue", "next", 
+        "what is playing", "what song", "search", "news", "today", "who is", "what is", 
+        "open", "launch", "start", "can you", "remember", "my", "i like", "i love", 
+        "my name", "calendar", "meeting", "events", "schedule", "wake me up", 
+        "remind me", "alarm", "every", "add to"
+    ]
+
+    if any(word in user_prompt for word in queue_triggers):
+        send_to_hardware("LED:CYAN")
+        socketio.start_background_task(process_master_queue_logic, user_prompt)
+        return
+
+    # ==========================================
+    # TIER 4: DEFAULT CONVERSATION
+    # ==========================================
+    # If it's just normal chatting, send it to the conversational brain
+    socketio.start_background_task(ask_ai_in_background, user_prompt)
+
+
+# --- DEDICATED LOGIC WORKERS ---
+
+def process_weather_logic(user_prompt):
+    global chat_history
+    try:
+        loc_prompt = f"Extract the city name from this request: '{user_prompt}'. If no city is mentioned, reply ONLY with 'Nibong Tebal'. Do not say anything else."
+        loc_response = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": loc_prompt}],
+            model="llama-3.1-8b-instant", temperature=0.0 
+        )
+        location = loc_response.choices[0].message.content.strip()
         
-        def process_calendar_request():
-            event_title, iso_time_str = extract_event_details(user_prompt)
+        weather_data = requests.get(f"https://wttr.in/{location.replace(' ', '+')}?format=%C,+%t", timeout=5).text.strip()
+        
+        prompt = f"The user asked for the weather in {location}. The live data says: {weather_data}. Tell the user this in a fun, energetic cartoon robot voice. Keep it under 20 words!"
+        chat_completion = groq_client.chat.completions.create(
+            messages=[{"role": "system", "content": "You are NoPants."}, {"role": "user", "content": prompt}],
+            model="llama-3.1-8b-instant", temperature=0.7 
+        )
+        answer = chat_completion.choices[0].message.content
+        
+        chat_history.append({"role": "user", "content": f"What is the weather in {location}?"})
+        chat_history.append({"role": "assistant", "content": answer})
+        speak(answer)
+    except Exception as e:
+        print(f"Weather Error: {e}")
+        speak("Barnacles! My weather antenna got struck by lightning.")
+
+def process_master_queue_logic(user_prompt):
+    global smart_home_status, chat_history, system_alarms
+    
+    command_list, spoken_reply = extract_master_queue(user_prompt, chat_history)
+    print(f"Master Agent Task List: {json.dumps(command_list, indent=2)}")
+    
+    if spoken_reply:
+        # Check if the AI scheduled ANY 'SPEAK' tasks in the array.
+        has_speak_task = any(step.get("type") == "SPEAK" for step in command_list)
+        
+        # Only say the general reply if there isn't a dedicated SPEAK task coming up
+        if not has_speak_task:
+            speak(spoken_reply)
+            
+    for step in command_list:
+        task_type = step.get("type", "")
+        
+        if task_type == "SMART_LIGHT":
+            system_command = step.get("command", "")
+            if system_command.startswith("HOME:LIGHT:COLOR:"):
+                color_word = system_command.split(":")[-1].strip().lower()
+                color_map = { "red": "255,0,0", "green": "0,255,0", "blue": "0,0,255", "yellow": "255,255,0", "purple": "128,0,128", "cyan": "0,255,255", "white": "255,255,255", "orange": "255,165,0", "pink": "255,105,180" }
+                system_command = f"HOME:LIGHT:COLOR:{color_map.get(color_word, '255,255,255')}" 
+                    
+            smart_home_status = None
+            send_to_hardware(system_command)
+            wait_time = 0
+            while smart_home_status is None and wait_time < 3.0:
+                socketio.sleep(0.1) 
+                wait_time += 0.1
+            if smart_home_status != "SUCCESS":
+                send_to_hardware("LED:RED")
+                speak("Uh oh, the smart light stopped responding.")
+                break 
+
+        elif task_type == "HARDWARE":
+            send_to_hardware(step.get("command", ""))
+            
+        elif task_type == "TIMER":
+            secs = step.get("seconds", 0)
+            if secs > 0:
+                socketio.emit('start_visual_timer', {'seconds': secs})
+                threading.Timer(secs, alarm_finished).start()
+
+        elif task_type == "SPEAK":
+            speak(step.get("text", ""))
+
+        elif task_type == "PLAY_MUSIC":
+            music_queue.clear()
+            music_queue.append(step.get("query", ""))
+            socketio.start_background_task(play_next_in_queue)
+            
+        elif task_type == "QUEUE_MUSIC":
+            music_queue.append(step.get("query", ""))
+            speak("Added to the queue.")
+            if not is_music_playing: socketio.start_background_task(play_next_in_queue)
+
+        elif task_type == "CHECK_MUSIC":
+            if current_song_title:
+                clean_title = current_song_title.split('(')[0].split('[')[0].strip()
+                speak(f"Currently playing: {clean_title}.")
+            else:
+                speak("I don't hear any music playing right now!")
+
+        elif task_type == "DELAY":
+            secs = step.get("seconds", 0)
+            if secs > 0: socketio.sleep(secs) 
+
+        elif task_type == "SEARCH_WEB":
+            search_query = step.get("query", "")
+            if search_query:
+                try:
+                    results = DDGS().text(search_query, max_results=3, timelimit='w')
+                    if not results:
+                        speak("I couldn't find anything about that online.")
+                        continue
+                    web_info = " ".join([r['body'] for r in results])
+                    current_date = datetime.datetime.now().strftime("%B %d, %Y")
+                    prompt = f"Today is {current_date}. User asked: '{search_query}'. Read this web data and answer them in 30 words or less. Be punchy and sound like a cartoon robot. Web Data: {web_info}"
+                    
+                    chat_completion = groq_client.chat.completions.create(
+                        messages=[{"role": "system", "content": "You are NoPants."}, {"role": "user", "content": prompt}],
+                        model="llama-3.1-8b-instant", temperature=0.7 
+                    )
+                    answer = chat_completion.choices[0].message.content
+                    chat_history.append({"role": "user", "content": f"Search the web for {search_query}"})
+                    chat_history.append({"role": "assistant", "content": answer})
+                    speak(answer)
+                except Exception as e:
+                    speak("Barnacles! I couldn't connect to the internet.")
+
+        elif task_type == "CHECK_CALENDAR":
+            target_date_str = step.get("date") 
             try:
-                parsed_time = datetime.datetime.strptime(iso_time_str, "%Y-%m-%d %H:%M")
                 import pytz
                 local_tz = pytz.timezone('Asia/Kuala_Lumpur')
-                parsed_time = local_tz.localize(parsed_time)
-                success = add_to_google_calendar(event_title, parsed_time)
-                if success:
-                    send_to_hardware("LED:BLUE")
-                    friendly_time = parsed_time.strftime("%A, %B %d, at %I:%M %p")
-                    speak(f"Done! I've added {event_title} to your calendar for {friendly_time}.")
+                if target_date_str:
+                    base_date = datetime.datetime.strptime(target_date_str, "%Y-%m-%d")
+                    target_day = local_tz.localize(base_date)
                 else:
-                    raise Exception("Google API Fail")
+                    target_day = datetime.datetime.now(local_tz)
+
+                start_of_range = target_day.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                end_of_range = target_day.replace(hour=23, minute=59, second=59, microsecond=0).isoformat()
+                events = check_upcoming_meetings(time_min=start_of_range, time_max=end_of_range)
+                
+                day_label = "today" if target_date_str == datetime.datetime.now().strftime("%Y-%m-%d") else "that day"
+                if target_date_str == (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%d"):
+                    day_label = "tomorrow"
+
+                if not events:
+                    speak(f"Your calendar for {day_label} is completely clear!")
+                else:
+                    agenda = []
+                    for e in events:
+                        title = e.get('summary', 'An Event')
+                        start_str = e['start'].get('dateTime', e['start'].get('date'))
+                        if 'T' in start_str:
+                            dt = datetime.datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+                            time_friendly = dt.astimezone(local_tz).strftime("%I:%M %p")
+                        else:
+                            time_friendly = "All Day"
+                        agenda.append(f"{title} at {time_friendly}")
+                        
+                    event_text = ". ".join(agenda)
+                    prompt = f"The user's schedule for {target_date_str} ({day_label}) is: {event_text}. Summarize this for them in 30 words or less. Be punchy and energetic!"
+                    
+                    chat_completion = groq_client.chat.completions.create(
+                        messages=[{"role": "system", "content": "You are NoPants."}, {"role": "user", "content": prompt}],
+                        model="llama-3.1-8b-instant", temperature=0.7 
+                    )
+                    speak(chat_completion.choices[0].message.content)
             except Exception as e:
-                send_to_hardware("LED:RED")
-                speak("Barnacles! I had trouble understanding the time for that meeting.")
-                
-        socketio.start_background_task(process_calendar_request)
-        return
+                speak("Barnacles! I had a glitch reading your schedule.")
 
-    # ---> THE UNIVERSAL ACTION QUEUE <---
-    elif any(word in user_prompt for word in queue_triggers):
-        send_to_hardware("LED:CYAN") # Give instant visual feedback
-        
-        def process_master_queue():
-            global smart_home_status, chat_history
-            command_list, spoken_reply = extract_master_queue(user_prompt, chat_history)
-            print(f"Master Agent Task List: {json.dumps(command_list, indent=2)}")
-            
-            # Check for duplicates before speaking the confirmation!
-            if spoken_reply:
-                is_duplicate = False
-                for step in command_list:
-                    if step.get("type") == "SPEAK" and step.get("text", "") == spoken_reply:
-                        is_duplicate = True
-                
-                # Only speak the confirmation if it's not a duplicate
-                if not is_duplicate:
-                    speak(spoken_reply)
-                
-            for step in command_list:
-                task_type = step.get("type", "")
-                delay_time = step.get("delay_after_seconds", 0)
-                
-                # --- HANDLE SMART HOME TASKS ---
-                if task_type == "SMART_LIGHT":
-                    system_command = step.get("command", "")
-                    
-                    if system_command.startswith("HOME:LIGHT:COLOR:"):
-                        color_word = system_command.split(":")[-1].strip().lower()
-                        color_map = {
-                            "red": "255,0,0", "green": "0,255,0", "blue": "0,0,255",
-                            "yellow": "255,255,0", "purple": "128,0,128", "cyan": "0,255,255",
-                            "white": "255,255,255", "orange": "255,165,0", "pink": "255,105,180"
-                        }
-                        if color_word in color_map:
-                            system_command = f"HOME:LIGHT:COLOR:{color_map[color_word]}"
-                        else:
-                            system_command = "HOME:LIGHT:COLOR:255,255,255" 
-                            
-                    smart_home_status = None
-                    print(f"Task Queue: Executing -> {system_command}")
-                    send_to_hardware(system_command)
-                    
-                    # Async-safe polling loop
-                    wait_time = 0
-                    while smart_home_status is None and wait_time < 3.0:
-                        socketio.sleep(0.1) 
-                        wait_time += 0.1
-                    
-                    if smart_home_status != "SUCCESS":
-                        send_to_hardware("LED:RED")
-                        print("Queue Aborted: Smart Light Failure")
-                        speak("Uh oh, the smart light stopped responding.")
-                        break 
-                
-                # --- HANDLE HARDWARE TASKS ---
-                elif task_type == "HARDWARE":
-                    send_to_hardware(step.get("command", ""))
-                    
-                # --- HANDLE TIMER TASKS (UI Alarms) ---
-                elif task_type == "TIMER":
-                    secs = step.get("seconds", 0)
-                    if secs > 0:
-                        socketio.emit('start_visual_timer', {'seconds': secs})
-                        threading.Timer(secs, alarm_finished).start()
-
-                # --- HANDLE SPEAK TASKS ---
-                elif task_type == "SPEAK":
-                    speak(step.get("text", ""))
-                
-                # --- ---> HANDLE MUSIC TASKS <--- ---
-                elif task_type == "PLAY_MUSIC":
-                    query = step.get("query", "")
-                    music_queue.clear() # Nuke the queue
-                    music_queue.append(query)
-                    socketio.start_background_task(play_next_in_queue)
-                
-                # --- ---> HANDLE MUSIC QUEUE & INFO <--- ---
-                elif task_type == "QUEUE_MUSIC":
-                    query = step.get("query", "")
-                    music_queue.append(query)
-                    speak(f"Added to the queue.")
-                    # If nothing was playing, start the queue!
-                    if not is_music_playing:
-                        socketio.start_background_task(play_next_in_queue)
-
-                elif task_type == "CHECK_MUSIC":
-                    if current_song_title:
-                        # Clean up weird YouTube tags like [Official Music Video] so he reads it naturally
-                        clean_title = current_song_title.split('(')[0].split('[')[0].strip()
-                        speak(f"Currently playing: {clean_title}.")
+        elif task_type == "CREATE_CALENDAR_EVENT":
+            event_title = step.get("title", "Meeting")
+            time_str = step.get("time", "")
+            if time_str:
+                try:
+                    parsed_time = datetime.datetime.strptime(time_str, "%Y-%m-%d %H:%M")
+                    import pytz
+                    local_tz = pytz.timezone('Asia/Kuala_Lumpur')
+                    parsed_time = local_tz.localize(parsed_time)
+                    success = add_to_google_calendar(event_title, parsed_time)
+                    if success:
+                        send_to_hardware("LED:BLUE")
+                        friendly_time = parsed_time.strftime("%I:%M %p on %A")
+                        speak(f"Done! I've added {event_title} to your calendar for {friendly_time}. Going back to sleep!")
                     else:
-                        speak("I don't hear any music playing right now!")
-                        
-                # --- ---> HANDLE DELAY TASKS (Code Pauses) <--- ---
-                elif task_type == "DELAY":
-                    secs = step.get("seconds", 0)
-                    if secs > 0:
-                        print(f"Task Queue: Waiting {secs} seconds...")
-                        socketio.sleep(secs) 
-                        
-                # --- ---> HANDLE WEB SEARCH TASKS <--- ---
-                elif task_type == "SEARCH_WEB":
-                    search_query = step.get("query", "")
-                    if search_query:
-                        print(f"Task Queue: Searching the web for '{search_query}'...")
-                        
-                        try:
-                            # 1. Scrape the top 3 results from the PAST WEEK only ('w')
-                            results = DDGS().text(search_query, max_results=3, timelimit='w')
-                            
-                            if not results:
-                                speak("I couldn't find anything about that online.")
-                                continue
-                                
-                            # 2. Mash all the text from the websites together
-                            web_info = " ".join([r['body'] for r in results])
-                            
-                            # 3. Ask Groq to summarize, REMINDING IT OF THE CURRENT DATE!
-                            current_date = datetime.datetime.now().strftime("%B %d, %Y")
-                            prompt = f"Today is {current_date}. User asked: '{search_query}'. Read this web data and answer them in 30 words or less. Be punchy and sound like a cartoon robot. Web Data: {web_info}"
-                            
-                            chat_completion = groq_client.chat.completions.create(
-                                messages=[
-                                    {"role": "system", "content": "You are NoPants, a highly energetic robot."},
-                                    {"role": "user", "content": prompt}
-                                ],
-                                model="llama-3.1-8b-instant",
-                                temperature=0.7 
-                            )
-                            answer = chat_completion.choices[0].message.content
-                            
-                            # 4. Save into short-term memory!
-                            chat_history.append({"role": "user", "content": f"Search the web for {search_query}"})
-                            chat_history.append({"role": "assistant", "content": answer})
-                            
-                            # 5. Say the final answer out loud
-                            speak(answer)
-                            
-                        except Exception as e:
-                            print(f"Web Search Error: {e}")
-                            speak("Barnacles! I couldn't connect to the internet.")
-                
-                # --- ---> HANDLE CALENDAR READ TASKS <--- ---
-                elif task_type == "CHECK_CALENDAR":
-                    # Get the target date from the AI (Default to today if not provided)
-                    target_date_str = step.get("date") 
-                    
-                    print(f"Task Queue: Checking Google Calendar for {target_date_str}...")
-                    try:
-                        import pytz
-                        local_tz = pytz.timezone('Asia/Kuala_Lumpur')
-                        
-                        if target_date_str:
-                            # Convert the "YYYY-MM-DD" from AI into a localized datetime object
-                            base_date = datetime.datetime.strptime(target_date_str, "%Y-%m-%d")
-                            target_day = local_tz.localize(base_date)
-                        else:
-                            target_day = datetime.datetime.now(local_tz)
+                        speak("Barnacles! I failed to sync with Google Calendar.")
+                except Exception as e:
+                    speak("I couldn't figure out the exact time for that meeting.")
 
-                        # Calculate the bounds for the SPECIFIC day (00:00:00 to 23:59:59)
-                        start_of_range = target_day.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-                        end_of_range = target_day.replace(hour=23, minute=59, second=59, microsecond=0).isoformat()
+        elif task_type == "REMEMBER_FACT":
+            new_fact = step.get("fact", "")
+            if new_fact:
+                save_new_memory(new_fact)
+                send_to_hardware("LED:CYAN")
+                socketio.sleep(0.5)
 
-                        # Fetch events for that specific window
-                        events = check_upcoming_meetings(time_min=start_of_range, time_max=end_of_range)
-                        
-                        # Determine the "friendly" name of the day for the AI
-                        day_label = "today" if target_date_str == datetime.datetime.now().strftime("%Y-%m-%d") else "that day"
-                        if target_date_str == (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%d"):
-                            day_label = "tomorrow"
+        elif task_type == "SET_ALARM":
+            alarm_label = step.get("label", "Alarm")
+            system_alarms.append({
+                "id": str(time.time()), "type": "daily", "time": step.get("time", "00:00"),
+                "days": step.get("days", []), "label": alarm_label, "triggered_today": False
+            })
+            save_alarms()
 
-                        if not events:
-                            speak(f"Your calendar for {day_label} is completely clear!")
-                        else:
-                            agenda = []
-                            for e in events:
-                                title = e.get('summary', 'An Event')
-                                start_str = e['start'].get('dateTime', e['start'].get('date'))
-                                
-                                if 'T' in start_str:
-                                    dt = datetime.datetime.fromisoformat(start_str.replace('Z', '+00:00'))
-                                    time_friendly = dt.astimezone(local_tz).strftime("%I:%M %p")
-                                else:
-                                    time_friendly = "All Day"
-                                agenda.append(f"{title} at {time_friendly}")
-                                
-                            event_text = ". ".join(agenda)
-                            
-                            # Update the summary prompt to include the specific day context
-                            prompt = f"The user's schedule for {target_date_str} ({day_label}) is: {event_text}. Summarize this for them in 30 words or less. Be punchy and energetic!"
-                            
-                            chat_completion = groq_client.chat.completions.create(
-                                messages=[
-                                    {"role": "system", "content": "You are NoPants, a high-energy robot assistant."},
-                                    {"role": "user", "content": prompt}
-                                ],
-                                model="llama-3.1-8b-instant",
-                                temperature=0.7 
-                            )
-                            answer = chat_completion.choices[0].message.content
-                            speak(answer)
-                            
-                    except Exception as e:
-                        print(f"Calendar Task Error: {e}")
-                        speak("Barnacles! I had a glitch reading your schedule.")
-                        
-                # --- ---> HANDLE LONG-TERM MEMORY <--- ---
-                elif task_type == "REMEMBER_FACT":
-                    new_fact = step.get("fact", "")
-                    if new_fact:
-                        # Save it to the JSON file!
-                        save_new_memory(new_fact)
-                        send_to_hardware("LED:CYAN")
-                        socketio.sleep(0.5)
-                        
-                # --- ---> HANDLE ADVANCED ALARMS <--- ---
-                elif task_type == "SET_ALARM":
-                    alarm_label = step.get("label", "Alarm")
-                    system_alarms.append({
-                        "id": str(time.time()),
-                        "type": "daily",
-                        "time": step.get("time", "00:00"),
-                        "days": step.get("days", []),
-                        "label": alarm_label,
-                        "triggered_today": False
-                    })
-                    save_alarms()
-                    
-                elif task_type == "SET_INTERVAL":
-                    mins = step.get("minutes", 60)
-                    reminder_label = step.get("label", "Reminder")
-                    system_alarms.append({
-                        "id": str(time.time()),
-                        "type": "interval",
-                        "minutes": mins,
-                        "next_run": time.time() + (mins * 60),
-                        "label": reminder_label
-                    })
-                    save_alarms()
-                        
-                elif task_type == "UNSUPPORTED":
-                    send_to_hardware("EARS:FLAT")
-                    send_to_hardware("LED:RED")
-                    # Speak the AI's diagnosis of what code it needs!
-                    speak(step.get("text", "I don't have the code to do that yet."))
-                
-        socketio.start_background_task(process_master_queue)
-        return
+        elif task_type == "SET_INTERVAL":
+            mins = step.get("minutes", 60)
+            reminder_label = step.get("label", "Reminder")
+            system_alarms.append({
+                "id": str(time.time()), "type": "interval", "minutes": mins,
+                "next_run": time.time() + (mins * 60), "label": reminder_label
+            })
+            save_alarms()
 
-    # 4. DEFAULT: STANDARD CONVERSATION
-    socketio.start_background_task(ask_ai_in_background, user_prompt)
+        elif task_type == "UNSUPPORTED":
+            send_to_hardware("EARS:FLAT")
+            send_to_hardware("LED:RED")
+            speak(step.get("text", "I don't have the code to do that yet."))
     
 # ---> LONG-TERM PERSONAL MEMORY DATABASE <---
 memory_file = os.path.join(os.path.dirname(__file__), 'user_memory.json')
