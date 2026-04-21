@@ -27,9 +27,5 @@ The system features a dynamically animated face running in Chromium Kiosk Mode, 
 |:---:|:---:|
 | ![Theme](Pics_&_Videos/Holographic_AI_theme_skin.jpeg) | ![Protocols](Pics_&_Videos/active_protocols_pic.jpeg) |
 
-## 👨‍💻 About the Developer
-
-Designed and engineered by Teow Wei Liang (William), a Mechatronics Engineering student at Universiti Sains Malaysia (USM). This project was created to explore the intersection of artificial intelligence, web development, and embedded hardware systems. 
-
 ---
 *If you like this project, feel free to drop a ⭐ on the repository!*
