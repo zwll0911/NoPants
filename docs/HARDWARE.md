@@ -3,6 +3,7 @@
 NoPants interfaces with the real world via a distributed ESP32 microcontroller network. The system consists of a **Main Hub** (inside the robot chassis) connected to the Raspberry Pi over a USB serial connection (`/dev/ttyUSB0` at `115200` baud), and remote **Smart Light Nodes** communicating wirelessly via ESP-NOW.
 
 !(Pics_&_Videos/Main_hero_pic.jpeg)
+
 > **Note:** A high-quality photo of the NoPants robot enclosure and wiring goes here.
 
 ---
