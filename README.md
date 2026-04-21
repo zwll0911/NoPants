@@ -1,46 +1,35 @@
-# NoPants: AI-Powered Robotic Assistant
+# 🤖 NoPants OS: The AI-Powered Desktop Assistant
 
-Welcome to the central repository for **NoPants**, a DIY, fully-functional, highly interactive robotic assistant. Featuring a dual-brain architecture (Cloud LLaMA + Local Ollama), robust hardware integration, and a suite of snarky, productivity-focused smart-assistant tools, NoPants is practically a tabletop JARVIS.
+Welcome to the central repository for **NoPants**, a fully functional, highly interactive robotic desktop assistant. Built on a "Dual-Brain" AI architecture, NoPants bridges the gap between hardware and software, acting as a proactive tabletop companion.
 
 ![NoPants Hero Shot](Pics_&_Videos/Main_hero_pic.jpeg)
-> **Meet NoPants! The ultimate DIY tabletop assistant.**
+
+## 🌟 Overview
+
+NoPants OS is not just a standard chatbot—it is a comprehensive **Task Execution Engine**. It features a custom Python/Flask WebSockets server that routes complex voice commands, controls physical hardware (via an ESP32), and renders a beautiful, real-time Glassmorphism holographic UI.
+
+Whether you need to manipulate smart home lights, manage a Pomodoro study session, dynamically schedule Google Calendar events, or just want to hear a joke, NoPants processes the request instantly.
+
+## 📚 Documentation Directory
+
+To keep this repository clean, the detailed technical breakdowns of NoPants' subsystems have been divided into the following documents:
+
+* **[Architecture & AI Logic](docs/ARCHITECTURE.md):** Deep dive into the Dual-Brain LLM routing (Groq + Ollama), the JSON Task Queue, and the Piper offline TTS engine.
+* **[Features & Capabilities](docs/FEATURES.md):** Detailed explanations and code snippets of the Proactive Calendar Monitor, Live Weather extraction, and VLC Music Queue.
+* **[Hardware & ESP32 Firmware](docs/HARDWARE.md):** Schematics, C++ serial parsing logic, and how the physical buttons/knobs act as system overrides.
+* **[Setup & Installation Guide](docs/SETUP_GUIDE.md):** Step-by-step instructions on how to install dependencies, configure API keys, and boot NoPants OS on a Raspberry Pi.
+
+## 📸 Interface Sneak Peek
+
+The system features a dynamically animated face running in Chromium Kiosk Mode, paired with a web-based Command Center for system monitoring and "Subconscious" memory injection.
+
+| Holographic AI Theme | Active Protocols Dashboard |
+|:---:|:---:|
+| ![Theme](Pics_&_Videos/Holographic_AI_theme_skin.jpeg) | ![Protocols](Pics_&_Videos/active_protocols_pic.jpeg) |
+
+## 👨‍💻 About the Developer
+
+Designed and engineered by Teow Wei Liang (William), a Mechatronics Engineering student at Universiti Sains Malaysia (USM). This project was created to explore the intersection of artificial intelligence, web development, and embedded hardware systems. 
 
 ---
-
-## 📚 The Documentation Base
-
-We've split the documentation up into distinct, detail-heavy pages so you can learn exactly how NoPants operates behind the scenes without scrolling endlessly.
-
-| Documentation Page | Description |
-| :--- | :--- |
-| **[🧠 The Architecture](docs/ARCHITECTURE.md)** | Learn about the Dual-Brain LLM system, the Master Task Agent pipelines, and the Piper Auto-Healer logic. |
-| **[✨ Complete Features Breakdown](docs/FEATURES.md)** | Discover everything NoPants can do, from Google Calendar Pomodoro alerts, to Arcade web games, to streaming YouTube queue engines. |
-| **[🤖 Physical Hardware & IO Map](docs/HARDWARE.md)** | Explore the ESP32 integration, including NeoPixel RGB maps, Servo animatronics protocols, and physical wiring schematics. |
-| **[🚀 Setup & Installation Guide](docs/SETUP_GUIDE.md)** | Download dependencies, configure OAuth keys, and spin up the Chromium Kiosk face matrix. |
-
----
-
-## 🎬 Demo Reel
-
-See NoPants in action!
-
-<video src="Pics_&_Videos/self_introduction.mp4" controls width="100%"></video>
-
-> **Demo:** NoPants introduces itself — voice, face animations and all.
-
----
-
-## ⚡ Quick Start Cheat Sheet
-
-**Web Server Address (Local Network):**
-`http://<SERVER_IP>:5000`
-*(Example: `http://192.168.1.131:5000`)*
-
-**Check ESP32 Hardware Port:**
-```bash
-ls /dev/ttyUSB*
-```
-
-**Chrome Microphone Flag:**
-To allow microphone accesses over HTTP on your local network, enable this Chrome flag on your viewing device:
-`chrome://flags/#unsafely-treat-insecure-origin-as-secure`
+*If you like this project, feel free to drop a ⭐ on the repository!*
