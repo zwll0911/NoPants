@@ -75,15 +75,39 @@ Triggered by saying *"Study mode"* or *"Pomodoro"*. This function alters the glo
 ## 🎮 3. Entertainment & Media
 
 ### Custom Web Arcade (`game.html`)
-Because the UI is web-based, NoPants features a dedicated `/game` route containing fully playable JavaScript arcade games!
+Because the NoPants UI is web-based, the system features a dedicated `/game` route containing fully playable HTML5 Canvas arcade games:
 * **Tetris**: A classic block-stacking implementation.
 * **Turret**: A reflex-based shooter.
 * **Burger**: A stacking/management mini-game.
 
-The Python server maintains a global leaderboard. Even cooler: the physical rotary knob and buttons on the ESP32 act as physical pass-through controllers, sending `game_input` socket emits directly to the HTML canvas!
+**Hardware-to-Canvas Integration:**
+The coolest part of the arcade is the control scheme. Instead of a keyboard, the physical rotary knob and buttons on the ESP32 act as a physical pass-through controller. When a button is pressed, the ESP32 sends a Serial string to Python, which instantly emits a WebSocket event directly into the JavaScript game loop!
+
+*Front-End JS Socket Listener:*
+```javascript
+const socket = io();
+
+// Listen for physical hardware button presses routed through Python
+socket.on('game_input', function(data) {
+    const cmd = data.command;
+    
+    // Pass the hardware command into the active game logic
+    if (currentGame === 'TETRIS') {
+        if (cmd === 'KNOB:RIGHT') tetrisMoveRight();
+        if (cmd === 'KNOB:LEFT') tetrisMoveLeft();
+        if (cmd === 'BTN:1') tetrisRotate();
+        if (cmd === 'BTN:3') tetrisHardDrop();
+    } 
+    else if (currentGame === 'TURRET') {
+        if (cmd === 'KNOB:RIGHT') moveTurretRight();
+        if (cmd === 'KNOB:LEFT') moveTurretLeft();
+        if (cmd === 'BTN:1') fireBullet();
+    }
+});
+```
 
 ### Headless Music Streaming & Queuing
-Using `yt-dlp` and a headless VLC subprocess (`cvlc`), NoPants can stream audio directly from YouTube without loading video assets. The Python server maintains process control, allowing users to physically interrupt playback via the ESP32 panic button.
+Using `yt-dlp` and a headless VLC subprocess (`cvlc`), NoPants can stream audio directly from YouTube without loading heavy video assets. The Python server maintains process control, allowing users to physically interrupt playback via the ESP32 panic button.
 
 **The Queue Processor:**
 ```python
