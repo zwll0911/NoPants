@@ -1337,14 +1337,24 @@
 
         // Functions to control the face from the browser
         function setEmotion(state) {
-            // Remove existing animation classes, but keep the theme class if it exists
-            let isHolo = document.body.classList.contains('holo-theme');
+            // 1. Check if the Robot theme is currently active
+            let isRobot = document.body.classList.contains('theme-robot');
+            
+            // 2. Clear out the old emotions, and set the new one
             document.body.className = state; 
-            if (isHolo) document.body.classList.add('holo-theme');
+            
+            // 3. Put the correct theme class back on!
+            if (isRobot) {
+                document.body.classList.add('theme-robot');
+            } else {
+                document.body.classList.add('theme-spongebob');
+            }
         }
 
         function toggleTheme() {
-            document.body.classList.toggle('holo-theme'); // Swap between standard and holo theme!
+            // Swap between the standard organic theme and the sleek robot theme!
+            document.body.classList.toggle('theme-robot');
+            document.body.classList.toggle('theme-spongebob');
         }
     </script>
 </body>
