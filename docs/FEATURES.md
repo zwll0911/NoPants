@@ -1,15 +1,37 @@
 # 🌟 Core Features & Code Deep-Dive
 
-NoPants is bundled with a vast suite of smart assistant capabilities. From keeping you productive to managing background hardware states, here is a detailed breakdown of the exact Python logic powering the robot.
+NoPants is bundled with a vast suite of smart assistant capabilities. From keeping you productive to rendering beautiful holographic web interfaces, here is a detailed breakdown of the exact logic powering the robot.
 
 ---
 
-## 👔 1. Productivity & Planning
+## 🖥️ 1. Holographic Web UI & Dashboards
+
+NoPants features a stunning, custom-built "Aurora Glass" UI. It uses vanilla HTML/JS and CSS Flexbox, completely avoiding heavy frameworks like React to ensure it runs blazing fast on a Raspberry Pi. 
+
+The UI communicates with Python in real-time via `Flask-SocketIO`, updating stats without ever reloading the page.
+
+### The Command Center (`index.html`)
+![Log Dashboard](../Pics_&_Videos/log_dashboard.png)
+The main landing page acts as a live system monitor. It features a continuous, scrolling "Active Data Stream" that logs exactly what the AI hears and thinks. The glass panels display live hardware metrics (CPU, RAM, Volume, ESP32 Link) polled directly from the Linux core.
+
+### System Configurations (`settings.html`)
+The settings portal is broken into three distinct, highly functional tabs:
+* **Core Matrix:** ![Core Matrix](../Pics_&_Videos/core_matrix_dashboard.png)
+  Allows hot-swapping the API Key, changing the active Piper TTS voice model, and directly modifying the core "System Persona" prompt.
+* **The Subconscious:** ![Subconscious Dashboard](../Pics_&_Videos/subconscious_dashboard.png)
+  A direct interface to the `user_memory.json` file. Users can manually inject facts, names, or rules into the LLM's permanent memory bank.
+* **Active Protocols:** ![Protocols Dashboard](../Pics_&_Videos/protocols_dashboard.png)
+  A live view of all recurring alarms, study timers, and intervals. Users can terminate background threads directly from this UI.
+
+### The Animated Face (`face.html`)
+When in rest mode, the physical robot display runs this route in Chromium Kiosk Mode. It relies heavily on CSS state machines. When Python emits a `music_start` or `llm_response` socket, the JavaScript injects dynamic classes (`<body class="talking">`) into the HTML, automatically triggering smooth, CSS-driven eye-blinking, mouth-moving, and head-bobbing animations.
+
+---
+
+## 👔 2. Productivity & Planning
 
 ### Proactive Google Calendar (Read & Write)
-NoPants doesn't just wait for you to ask about your schedule; it monitors it autonomously. A dedicated background thread continuously polls the Google Calendar API. If an event is exactly 5 minutes away, the robot initiates a panic sequence, bypassing standard conversational flow to warn you instantly.
-
-Additionally, the LLM Master Task Queue can dynamically extract dates and times to create new events on the fly.
+NoPants monitors your schedule autonomously. A dedicated background thread continuously polls the Google Calendar API. If an event is exactly 5 minutes away, the robot initiates a panic sequence, bypassing standard conversational flow to warn you instantly.
 
 **The Proactive Monitor Logic:**
 ```python
@@ -48,45 +70,17 @@ def proactive_calendar_monitor():
 ### Pomodoro "Study Mode" & State Management
 Triggered by saying *"Study mode"* or *"Pomodoro"*. This function alters the global state of the robot. It rejects pending alarms (setting `do_not_disturb = True`), shifts the hardware LEDs to a focus hue, automatically queues a Lo-Fi hip hop stream, and starts a 25-minute (1500 second) visual timer on the web UI.
 
-**The State Override Logic:**
-```python
-elif "study mode" in user_prompt or "pomodoro" in user_prompt:
-    do_not_disturb = True # Blocks background alarms & calendar alerts
-    
-    socketio.start_background_task(speak, "Study mode activated. 25 minutes on the clock.")
-    send_to_hardware("LED:RGB:150,50,0") 
-    
-    # Inject Lo-Fi beats directly into the queue
-    music_queue.clear()
-    music_queue.append("lofi hip hop radio beats to relax study to")
-    socketio.start_background_task(play_next_in_queue)
-    
-    # Trigger UI Timer and Background Thread
-    socketio.emit('start_visual_timer', {'seconds': 1500})
-    threading.Timer(1500.0, pomodoro_finished).start()
-```
-
-### The Subconscious Memory Bank
-NoPants maintains persistent conversational memory across reboots. The Master Task Queue can trigger a `REMEMBER_FACT` action, which pushes specific preferences or names into a `user_memory.json` file. To prevent LLM context-window bloat, the system utilizes a sliding window, retaining only the 30 most recent facts.
-
-**The Memory Injection Logic:**
-```python
-def save_new_memory(fact):
-    global user_memories
-    if fact not in user_memories:
-        user_memories.append(fact)
-        
-        # Sliding Window: Prevent brain bloat! 
-        if len(user_memories) > 30:
-            user_memories = user_memories[-30:]
-            
-        with open(memory_file, 'w') as f:
-            json.dump(user_memories, f)
-```
-
 ---
 
-## 🎵 2. Entertainment & Media
+## 🎮 3. Entertainment & Media
+
+### Custom Web Arcade (`game.html`)
+Because the UI is web-based, NoPants features a dedicated `/game` route containing fully playable JavaScript arcade games!
+* **Tetris**: A classic block-stacking implementation.
+* **Turret**: A reflex-based shooter.
+* **Burger**: A stacking/management mini-game.
+
+The Python server maintains a global leaderboard. Even cooler: the physical rotary knob and buttons on the ESP32 act as physical pass-through controllers, sending `game_input` socket emits directly to the HTML canvas!
 
 ### Headless Music Streaming & Queuing
 Using `yt-dlp` and a headless VLC subprocess (`cvlc`), NoPants can stream audio directly from YouTube without loading video assets. The Python server maintains process control, allowing users to physically interrupt playback via the ESP32 panic button.
@@ -122,7 +116,7 @@ def play_next_in_queue():
 
 ---
 
-## 🛠️ 3. Utilities & Smart Integrations
+## 🛠️ 4. Utilities & Smart Integrations
 
 ### 3-Step Instant Weather (wttr.in)
 Standard weather APIs require slow JSON parsing and expensive keys. NoPants uses a 3-step LLM extraction pipeline to parse the user's city, hit the lightning-fast `wttr.in` text endpoint, and re-format the raw data into natural speech.
@@ -151,28 +145,3 @@ def process_weather():
 NoPants evaluates two different types of chronological events in a unified background thread:
 * **Daily/Weekly Alarms:** Pinpoint chronological events (e.g., `07:00` on `Monday`). Triggers a loud audio siren and red LEDs.
 * **Interval Reminders:** Epoch-based math (`current_timestamp + (minutes * 60)`). Designed for passive reminders like "drink water," triggering a visual hardware trick rather than a loud alarm.
-
-**The Background Matrix:**
-```python
-def background_alarm_monitor():
-    while True:
-        now = datetime.datetime.now(local_tz)
-        current_time = now.strftime("%H:%M")
-        current_ts = time.time()
-        
-        for al in system_alarms:
-            # 1. Exact Time Alarms (Siren)
-            if al.get('type') == 'daily':
-                if current_time == al['time'] and current_day in al['days'] and not al.get('triggered'):
-                    socketio.start_background_task(alarm_loop)
-                    al['triggered'] = True
-                    
-            # 2. Interval Reminders (Visual/Soft)
-            elif al.get('type') == 'interval':
-                if current_ts >= al.get('next_run', 0):
-                    socketio.start_background_task(speak, f"Reminder: {al['label']}")
-                    socketio.start_background_task(party_trick) 
-                    al['next_run'] = current_ts + (al['minutes'] * 60)
-                    
-        socketio.sleep(10)
-```
