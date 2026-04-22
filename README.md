@@ -49,9 +49,6 @@ The system features a dynamically animated face running in Chromium Kiosk Mode o
 
 ---
 
-## 👨‍💻 About the Developer
-
-Designed and engineered by **William Teow Wei Liang**, a Mechatronics Engineering student at Universiti Sains Malaysia (USM). 
 
 This project was created to explore the intersection of artificial intelligence, full-stack web development, and embedded hardware systems. 
 
