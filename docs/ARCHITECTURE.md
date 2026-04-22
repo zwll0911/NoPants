@@ -115,7 +115,9 @@ except Exception as e:
 
 ## 🦾 3. The "Master Task Agent" Pipeline
 
-When you ask NoPants to do something complex (Tier 3), it doesn't just "talk back". It uses a separate LLM call dedicated entirely to extracting intent. The Master Agent converts your sentence into an explicit array of executable JSON tasks.
+When you ask NoPants to do something complex (e.g., *"Set the lights to red, wait 5 seconds, then play some lofi music"*), traditional NLP fails. 
+
+Instead, NoPants uses a highly-tuned **System Prompt** that forces the LLM to output a strict JSON array of sequential tasks. Python then parses this array and executes it natively.
 
 ```mermaid
 graph TD
@@ -135,40 +137,27 @@ graph TD
     J --> K
 ```
 
-### The LLM Directive
-We use a highly-tuned prompt to force the LLM to act as a pseudo-compiler:
-```python
-system_prompt = f"""
-You are the Master Command Agent for NoPants. 
-CURRENT DATE & TIME: {current_time}
-USER FACTS: {known_facts}
+### The Double-Talk Filter & Execution Loop
+LLMs occasionally hallucinate and duplicate their responses across both `spoken_reply` and `SPEAK` tasks. The execution pipeline features a "Bulletproof Double-Talk Filter" to catch this before iterating through the tasks.
 
-Valid Task Types:
-1. "SMART_LIGHT" - HOME:LIGHT:COLOR:<color>
-2. "TIMER" - "seconds" integer
-3. "DELAY" - "seconds" integer
-4. "PLAY_MUSIC" - "query" string
-5. "CREATE_CALENDAR_EVENT" - Requires "title" and "time" (YYYY-MM-DD HH:MM)
-6. "CHECK_CALENDAR" - Requires "date" (YYYY-MM-DD)
-
-Respond ONLY with JSON: {{"spoken_reply": "...", "commands": [{{...}}]}}
-"""
-```
-
-### The Python Execution Loop
-Once the JSON array is returned, the backend iterates through it, executing functions natively:
 ```python
 def process_master_queue_logic(user_prompt):
     command_list, spoken_reply = extract_master_queue(user_prompt, chat_history)
     
+    # --- BULLETPROOF DOUBLE-TALK FILTER ---
+    if spoken_reply:
+        # Check if the AI scheduled ANY 'SPEAK' tasks in the array.
+        has_speak_task = any(step.get("type") == "SPEAK" for step in command_list)
+        
+        # Only say the general reply if there isn't a dedicated SPEAK task coming up
+        if not has_speak_task:
+            speak(spoken_reply)
+            
     for step in command_list:
         task_type = step.get("type", "")
         
         if task_type == "SMART_LIGHT":
             send_to_hardware(step.get("command", ""))
-            
-        elif task_type == "DELAY":
-            socketio.sleep(step.get("seconds", 0))
             
         elif task_type == "CREATE_CALENDAR_EVENT":
             parsed_time = datetime.datetime.strptime(step.get("time"), "%Y-%m-%d %H:%M")
@@ -185,7 +174,7 @@ def process_master_queue_logic(user_prompt):
 
 NoPants uses **Piper TTS** for high-quality, fully offline speech generation, processed locally on the Raspberry Pi CPU to avoid API latency.
 
-One of the most robust features of the system is the **Piper Auto-Healer**. Large `.onnx` voice models are prone to corruption, or Git might fail to clone them due to LFS limits. On boot, the server checks the physical file size of the models. If they are missing or corrupted, the system dynamically reconstructs the HuggingFace URL and pulls clean binaries, preventing a fatal crash.
+Because users might accidentally delete `.onnx` voice models, or Git might fail to clone large files (LFS limits), the TTS engine features an **Auto-Healing Initialization Block**. Before generating speech, the system checks the file size. If it detects corruption or missing files, it dynamically parses the expected filename, constructs the HuggingFace URL, and initiates a `wget` sequence to repair itself.
 
 ```python
 # ---> THE STRICT AUTO-HEALER <---
@@ -203,10 +192,37 @@ if needs_healing:
     language = region.split('_')[0]          
     
     base_url = f"[https://huggingface.co/rhasspy/piper-voices/resolve/main/](https://huggingface.co/rhasspy/piper-voices/resolve/main/){language}/{region}/{voice_name}/medium"
-    
     os.system(f'wget -q -O {voice_model} "{base_url}/{filename}?download=true"')
 
 # Execute Audio via ALSA and SoX
 turbo_cmd = f'echo "{safe_text}" | ./piper/piper --model {voice_model} --output_raw | play -q -t raw -r 22050 -e signed -b 16 -c 1 - pitch +450 tempo 1.0 2>/dev/null'
 os.system(turbo_cmd)
+```
+
+---
+
+## 🌐 5. Flask-SocketIO Web State Machine
+
+Instead of hardcoding complex GUI graphics in Python, NoPants outsources all UI rendering to Chromium Kiosk Mode. Python simply acts as a state director, emitting signals via `Flask-SocketIO` to tell the HTML frontend what to do.
+
+By pushing CSS classes dynamically via JavaScript, the robot can transition states smoothly without heavy hardware rendering logic.
+
+**Python Backend (Emitting State):**
+```python
+socketio.emit('music_start') 
+socketio.emit('llm_response', {'response': text})
+```
+
+**JavaScript Frontend (Catching & Animating):**
+```javascript
+socket.on('music_start', () => {
+    // Triggers CSS keyframe head-bobbing animations
+    document.body.classList.add('jamming'); 
+});
+
+socket.on('llm_response', (data) => {
+    // Awakens the robot face and triggers mouth CSS animations
+    document.body.classList.add('talking');
+    document.getElementById('subtitle').innerText = data.response;
+});
 ```
