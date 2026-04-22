@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>NoPants Face OS</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@600;800&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -34,84 +34,19 @@
             box-shadow: inset 1vmin 1vmin 2vmin rgba(180, 130, 0, 0.4), 0.2vmin 0.2vmin 0 rgba(255, 245, 150, 0.5);
         }
 
-        .p1 {
-            top: 12%;
-            left: 8vw;
-            width: 10vmin;
-            height: 10vmin;
-        }
+        .p1 { top: 12%; left: 8vw; width: 10vmin; height: 10vmin; }
+        .p2 { top: 30%; left: 3vw; width: 5vmin; height: 5vmin; }
+        .p3 { bottom: 20%; left: 10vw; width: 12vmin; height: 12vmin; }
+        .p4 { bottom: 40%; left: 15vw; width: 4vmin; height: 4vmin; }
+        .p5 { top: 15%; right: 10vw; width: 8vmin; height: 8vmin; }
+        .p6 { top: 35%; right: 4vw; width: 6vmin; height: 6vmin; }
+        .p7 { bottom: 25%; right: 14vw; width: 10vmin; height: 10vmin; }
+        .p8 { bottom: 12%; right: 30vw; width: 4vmin; height: 4vmin; }
+        .p9 { top: 8%; left: 45vw; width: 6vmin; height: 6vmin; }
+        .p10 { bottom: 5%; left: 38vw; width: 7vmin; height: 7vmin; }
+        .p11 { bottom: 50%; right: 8vw; width: 4vmin; height: 4vmin; }
 
-        .p2 {
-            top: 30%;
-            left: 3vw;
-            width: 5vmin;
-            height: 5vmin;
-        }
-
-        .p3 {
-            bottom: 20%;
-            left: 10vw;
-            width: 12vmin;
-            height: 12vmin;
-        }
-
-        .p4 {
-            bottom: 40%;
-            left: 15vw;
-            width: 4vmin;
-            height: 4vmin;
-        }
-
-        .p5 {
-            top: 15%;
-            right: 10vw;
-            width: 8vmin;
-            height: 8vmin;
-        }
-
-        .p6 {
-            top: 35%;
-            right: 4vw;
-            width: 6vmin;
-            height: 6vmin;
-        }
-
-        .p7 {
-            bottom: 25%;
-            right: 14vw;
-            width: 10vmin;
-            height: 10vmin;
-        }
-
-        .p8 {
-            bottom: 12%;
-            right: 30vw;
-            width: 4vmin;
-            height: 4vmin;
-        }
-
-        .p9 {
-            top: 8%;
-            left: 45vw;
-            width: 6vmin;
-            height: 6vmin;
-        }
-
-        .p10 {
-            bottom: 5%;
-            left: 38vw;
-            width: 7vmin;
-            height: 7vmin;
-        }
-
-        .p11 {
-            bottom: 50%;
-            right: 8vw;
-            width: 4vmin;
-            height: 4vmin;
-        }
-
-        /* --- BULLETPROOF EYE STRUCTURE --- */
+        /* --- EYE STRUCTURE --- */
         .eyes-wrapper {
             position: absolute;
             top: 18vh;
@@ -176,7 +111,6 @@
             border-radius: 50%;
         }
 
-        /* EYELID */
         .eyelid {
             position: absolute;
             top: -105%;
@@ -189,7 +123,6 @@
             z-index: 5;
         }
 
-        /* EYELASHES */
         .lash {
             position: absolute;
             width: 1vmin;
@@ -200,21 +133,9 @@
             transition: opacity 0.2s;
         }
 
-        .lash.l1 {
-            left: 15%;
-            transform: rotate(-30deg);
-        }
-
-        .lash.l2 {
-            left: 50%;
-            transform: translateX(-50%);
-            top: -3vmin;
-        }
-
-        .lash.l3 {
-            right: 15%;
-            transform: rotate(30deg);
-        }
+        .lash.l1 { left: 15%; transform: rotate(-30deg); }
+        .lash.l2 { left: 50%; transform: translateX(-50%); top: -3vmin; }
+        .lash.l3 { right: 15%; transform: rotate(30deg); }
 
         /* --- NOSE --- */
         .nose {
@@ -258,15 +179,8 @@
             opacity: 0.8;
         }
 
-        .cheek.left {
-            left: 50%;
-            margin-left: -32vmin;
-        }
-
-        .cheek.right {
-            right: 50%;
-            margin-right: -32vmin;
-        }
+        .cheek.left { left: 50%; margin-left: -32vmin; }
+        .cheek.right { right: 50%; margin-right: -32vmin; }
 
         .freckle {
             position: absolute;
@@ -277,20 +191,9 @@
             z-index: 4;
         }
 
-        .f1 {
-            top: 0;
-            left: 3vmin;
-        }
-
-        .f2 {
-            top: 2vmin;
-            left: 1vmin;
-        }
-
-        .f3 {
-            top: 2vmin;
-            left: 6vmin;
-        }
+        .f1 { top: 0; left: 3vmin; }
+        .f2 { top: 2vmin; left: 1vmin; }
+        .f3 { top: 2vmin; left: 6vmin; }
 
         /* --- MOUTH & TEETH --- */
         .mouth-wrapper {
@@ -350,727 +253,64 @@
            STATE MACHINE CSS
            ========================================= */
         body.sleeping .eye {
-            height: 45%;
-            width: 85%;
-            background: transparent;
-            border: none;
-            border-bottom: 1.5vmin solid #111;
-            border-radius: 50%;
-            box-shadow: none;
-            margin-top: 15%;
+            height: 45%; width: 85%; background: transparent; border: none;
+            border-bottom: 1.5vmin solid #111; border-radius: 50%; box-shadow: none; margin-top: 15%;
         }
+        body.sleeping .eyelid, body.sleeping .iris, body.sleeping .lash { opacity: 0; display: none; }
+        body.sleeping .mouth { height: 8vmin; width: 25vmin; border-radius: 2vmin 2vmin 15vmin 15vmin; }
+        body.sleeping .tongue { opacity: 0; }
+        body.sleeping .nose { transform: translate(-50%, 2vmin); }
+        body.sleeping .cheek { top: 50vh; }
 
-        body.sleeping .eyelid,
-        body.sleeping .iris,
-        body.sleeping .lash {
-            opacity: 0;
-            display: none;
-        }
+        @keyframes talk { 0% { height: 10vmin; } 100% { height: 18vmin; border-radius: 2vmin 2vmin 20vmin 20vmin; } }
+        body.talking .mouth { animation: talk 0.15s infinite alternate; }
+        body.talking .nose { transform: translate(-50%, -1vmin); }
 
-        body.sleeping .mouth {
-            height: 8vmin;
-            width: 25vmin;
-            border-radius: 2vmin 2vmin 15vmin 15vmin;
-        }
+        body.angry .eyelid { top: -45%; transform: scale(1.1) rotate(15deg); }
+        body.angry .eye-box:nth-child(2) .eyelid { transform: scale(1.1) rotate(-15deg); }
+        body.angry .iris { background: #f44336; }
+        body.angry .lash { opacity: 0; }
+        body.angry .mouth { height: 4vmin; border-radius: 50vmin 50vmin 0 0; background: transparent; border: none; border-top: 1.5vmin solid #111; margin-top: 5vmin; }
+        body.angry .teeth-wrapper, body.angry .tongue { opacity: 0; }
 
-        body.sleeping .tongue {
-            opacity: 0;
-        }
+        body.thinking .iris { top: 5%; left: 40%; }
+        @keyframes ponder { 0% { transform: translateX(12vmin) scale(0.9); } 100% { transform: translateX(18vmin) scale(1.1); } }
+        body.thinking .mouth { height: 6vmin; width: 6vmin; border-radius: 50%; background: #410000; border: 1vmin solid #111; margin-top: 2vmin; animation: ponder 0.5s infinite alternate ease-in-out; }
+        body.thinking .teeth-wrapper, body.thinking .tongue { opacity: 0; }
 
-        body.sleeping .nose {
-            transform: translate(-50%, 2vmin);
-        }
+        body.shouting .iris { top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.3); }
+        body.shouting .mouth { height: 25vmin; width: 35vmin; border-radius: 20px 20px 120px 120px; bottom: 10%; animation: screamShake 0.1s infinite alternate; }
+        @keyframes screamShake { 0% { transform: translateX(-52%) translateY(3px); } 100% { transform: translateX(-48%) translateY(-3px); } }
 
-        body.sleeping .cheek {
-            top: 50vh;
-        }
-
-        @keyframes talk {
-            0% {
-                height: 10vmin;
-            }
-
-            100% {
-                height: 18vmin;
-                border-radius: 2vmin 2vmin 20vmin 20vmin;
-            }
-        }
-
-        body.talking .mouth {
-            animation: talk 0.15s infinite alternate;
-        }
-
-        body.talking .nose {
-            transform: translate(-50%, -1vmin);
-        }
-
-        body.angry .eyelid {
-            top: -45%;
-            transform: scale(1.1) rotate(15deg);
-        }
-
-        body.angry .eye-box:nth-child(2) .eyelid {
-            transform: scale(1.1) rotate(-15deg);
-        }
-
-        body.angry .iris {
-            background: #f44336;
-        }
-
-        body.angry .lash {
-            opacity: 0;
-        }
-
-        body.angry .mouth {
-            height: 4vmin;
-            border-radius: 50vmin 50vmin 0 0;
-            background: transparent;
-            border: none;
-            border-top: 1.5vmin solid #111;
-            margin-top: 5vmin;
-        }
-
-        body.angry .teeth-wrapper,
-        body.angry .tongue {
-            opacity: 0;
-        }
-
-        body.thinking .eyelid {
-            top: -105%;
-        }
-
-        body.thinking .iris {
-            top: 5%;
-            left: 40%;
-        }
-
-        @keyframes ponder {
-            0% {
-                transform: translateX(12vmin) scale(0.9);
-            }
-
-            100% {
-                transform: translateX(18vmin) scale(1.1);
-            }
-        }
-
-        body.thinking .mouth {
-            height: 6vmin;
-            width: 6vmin;
-            border-radius: 50%;
-            background: #410000;
-            border: 1vmin solid #111;
-            margin-top: 2vmin;
-            animation: ponder 0.5s infinite alternate ease-in-out;
-        }
-
-        body.thinking .teeth-wrapper,
-        body.thinking .tongue {
-            opacity: 0;
-        }
-
-        body.thinking .nose {
-            transform: translate(-50%, -1vmin);
-        }
-
-        body.shouting .eyelid {
-            top: -105%;
-        }
-
-        body.shouting .iris {
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(1.3);
-        }
-
-        body.shouting .mouth {
-            height: 25vmin;
-            width: 35vmin;
-            border-radius: 20px 20px 120px 120px;
-            bottom: 10%;
-            animation: screamShake 0.1s infinite alternate;
-        }
-
-        @keyframes screamShake {
-            0% {
-                transform: translateX(-52%) translateY(3px);
-            }
-
-            100% {
-                transform: translateX(-48%) translateY(-3px);
-            }
-        }
-
-        body.shouting .nose {
-            transform: translate(-50%, -3vmin);
-        }
-
-        @keyframes headBob {
-
-            0%,
-            100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-15px) rotate(2deg);
-            }
-        }
-
-        body.jamming #face-anchor {
-            animation: headBob 0.6s infinite alternate ease-in-out;
-        }
+        @keyframes headBob { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-15px) rotate(2deg); } }
+        body.jamming #face-anchor { animation: headBob 0.6s infinite alternate ease-in-out; }
 
         /* =========================================
-           GLASSMORPHISM HUD ELEMENTS
+           HUD ELEMENTS & THEMES
            ========================================= */
-        #music-hud,
-        #alarm-queue,
-        #floating-timer {
+        #music-hud, #alarm-queue, #floating-timer {
             background: linear-gradient(135deg, rgba(5, 10, 15, 0.8), rgba(0, 0, 0, 0.6));
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            border-left: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            z-index: 1000;
+            backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); color: #fff; z-index: 1000;
         }
 
-        #music-hud {
-            position: absolute;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 25px;
-            border-radius: 40px;
-            font-weight: 800;
-            font-size: 16px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            max-width: 320px;
-            white-space: nowrap;
-            overflow: hidden;
-        }
+        #music-hud { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); padding: 12px 25px; border-radius: 40px; display: none; align-items: center; gap: 12px; }
+        #floating-timer { position: absolute; bottom: 30px; right: 30px; padding: 12px 25px; border-radius: 30px; font-size: 24px; color: #fde047; }
 
-        #song-title-text {
-            color: #00f0ff;
-            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-            letter-spacing: 0.5px;
-        }
-
-        @keyframes pulse {
-            from {
-                transform: scale(1);
-            }
-
-            to {
-                transform: scale(1.2);
-            }
-        }
-
-        #alarm-queue {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            padding: 20px 25px;
-            border-radius: 20px;
-            display: none;
-        }
-
-        #alarm-queue h3 {
-            margin: 0 0 15px 0;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-        }
-
-        .glass-alarm-item {
-            margin-bottom: 10px;
-            color: #00f0ff;
-            font-weight: 600;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 10px 15px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        #floating-timer {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-size: 24px;
-            color: #fde047;
-            font-family: 'Courier New', monospace;
-            font-weight: 900;
-            opacity: 1;
-            transition: opacity 0.5s ease-in-out;
-            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-        }
-
-        #floating-timer.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* =========================================
-           THEME SWITCHING CSS ENGINE
-           ========================================= */
-
-        /* HIDE ORGANIC SPONGEBOB FEATURES ON OTHER THEMES */
-        body:not(.theme-spongebob) .tongue {
-            display: none !important;
-        }
-
-        /* =====================================================
-           THEME 2: AI-BOT — Full-Screen Expressive Robot Face
-           ===================================================== */
-
-        /* ── State colour variables ── */
+        /* THEME 2: AI-BOT */
         body.theme-robot {
-            --c-eye: #00d8ff;
-            --c-glow: rgba(0, 216, 255, 0.65);
-            --c-glow2: rgba(0, 216, 255, 0.14);
-            --c-mouth: #00d8ff;
+            --c-eye: #00d8ff; --c-glow: rgba(0, 216, 255, 0.65); --c-mouth: #00d8ff;
+            background: radial-gradient(ellipse at 50% 42%, #0d2035 0%, #060f1c 55%, #020810 100%) !important;
+        }
+        body.theme-robot .pore, body.theme-robot .freckle, body.theme-robot .lash, body.theme-robot .eyelid, body.theme-robot .pupil, body.theme-robot .nose, body.theme-robot .tongue, body.theme-robot .iris, body.theme-robot .tooth, body.theme-robot .teeth-wrapper { display: none !important; }
+        body.theme-robot .eye { background: var(--c-eye) !important; border: none !important; border-radius: 8vmin !important; box-shadow: 0 0 30px 5px var(--c-glow) !important; }
+        body.theme-robot .mouth { width: 18vmin !important; height: 2vmin !important; background: var(--c-mouth) !important; border: none !important; border-radius: 5vmin !important; box-shadow: 0 0 15px var(--c-glow) !important; }
 
-            background: radial-gradient(ellipse at 50% 42%,
-                    #0d2035 0%,
-                    #060f1c 55%,
-                    #020810 100%) !important;
-            overflow: hidden;
-        }
-
-        /* ── Subtle grid lines in background ── */
-        body.theme-robot::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(0, 180, 255, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 180, 255, 0.035) 1px, transparent 1px);
-            background-size: 6vw 6vw;
-            pointer-events: none;
-            z-index: 0;
-            animation: gridPulse 8s ease-in-out infinite alternate;
-        }
-
-        @keyframes gridPulse {
-            from {
-                opacity: 0.5;
-            }
-
-            to {
-                opacity: 1.0;
-            }
-        }
-
-        /* ── Hide some Spongebob/shell elements (keep cheeks for blush) ── */
-        body.theme-robot .pore,
-        body.theme-robot .freckle,
-        body.theme-robot .lash,
-        body.theme-robot .eyelid,
-        body.theme-robot .pupil,
-        body.theme-robot .catchlight,
-        body.theme-robot .nose,
-        body.theme-robot .tongue,
-        body.theme-robot .iris,
-        body.theme-robot .tooth,
-        body.theme-robot .teeth-wrapper {
-            display: none !important;
-        }
-
-        /* ── No head shell — transparent face-anchor overlays ── */
-        body.theme-robot #face-anchor::before,
-        body.theme-robot #face-anchor::after {
-            display: none !important;
-        }
-
-        /* ═══════════════════════════════════════════════════
-           CHEEKS  —  Cute kawaii blush
-           ═══════════════════════════════════════════════════ */
-        body.theme-robot .cheek {
-            display: block !important;
-            width: 14vmin !important;
-            height: 14vmin !important;
-            background: rgba(255, 100, 150, 0.25) !important;
-            border-radius: 50% !important;
-            filter: blur(25px) !important;
-            z-index: 4 !important;
-            position: absolute !important;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-        }
-
-        body.theme-robot .cheek.left { left: 22vw !important; top: 40vh !important; }
-        body.theme-robot .cheek.right { right: 22vw !important; left: auto !important; top: 40vh !important; }
-
-        /* ═══════════════════════════════════════════════════
-           EYES  —  Large glowing proportional screens
-           ═══════════════════════════════════════════════════ */
-        body.theme-robot .eyes-wrapper {
-            top: 25vh !important; /* Pushed up to separate from mouth */
-            gap: 12vmin !important;
-            z-index: 5 !important;
-        }
-
-        body.theme-robot .eye-box {
-            width: 22vmin !important;  
-            height: 32vmin !important; /* vmin guarantees it's bounded by viewport height so they never overlap the mouth! */
-            position: relative !important;
-        }
-
-        body.theme-robot .eye {
-            position: absolute !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: var(--c-eye) !important;
-            border: none !important;
-            border-radius: 8vmin !important; 
-            box-shadow: 0 0 30px 5px var(--c-glow), 0 0 60px 15px var(--c-glow2) !important;
-            
-            /* Disney-style bouncy physics for ALL shape changes */
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-            animation: idleBreathe 3s ease-in-out infinite !important;
-        }
-
-        @keyframes idleBreathe {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02, 0.98); } /* Subtle squash and stretch */
-        }
-        
-        body.theme-robot .iris { display: none !important; }
-
-        /* ═══════════════════════════════════════════════════
-           MOUTH  —  Clean expressive line
-           ═══════════════════════════════════════════════════ */
-        body.theme-robot .mouth-wrapper {
-            top: 65vh !important; /* Safely far below eyes */
-            z-index: 5 !important;
-        }
-
-        body.theme-robot .mouth {
-            width: 18vmin !important; 
-            height: 2vmin !important;
-            background: var(--c-mouth) !important;
-            border: none !important;
-            border-radius: 5vmin !important; 
-            box-shadow: 0 0 15px var(--c-glow) !important;
-            overflow: visible !important;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-        }
-        
-        body.theme-robot .teeth-wrapper,
-        body.theme-robot .tooth { display: none !important; }
-        
-        /* ═══════════════════════════════════════════════════════════════
-           STATE 1 — SLEEPING (Snoring dashes)
-           ═══════════════════════════════════════════════════════════════ */
-        body.theme-robot.sleeping {
-            --c-eye: rgba(0, 240, 255, 0.6);
-            --c-glow: rgba(0, 120, 160, 0.3);
-            --c-glow2: rgba(0, 120, 160, 0.1);
-            --c-mouth: rgba(0, 240, 255, 0.3);
-        }
-
-        body.theme-robot.sleeping .eye {
-            height: 4vmin !important; 
-            margin-top: 15vmin !important; 
-            border-radius: 3vmin !important;
-            opacity: 0.6 !important;
-            animation: sleepSigh 4.5s ease-in-out infinite !important;
-        }
-
-        @keyframes sleepSigh {
-            0%, 100% { transform: scaleX(1); opacity: 0.6; }
-            50% { transform: scaleX(0.85); opacity: 0.2; }
-        }
-
-        body.theme-robot.sleeping .mouth {
-            width: 8vmin !important;
-            margin-top: -3vmin !important;
-            box-shadow: none !important;
-        }
-
-        body.theme-robot.sleeping #face-anchor {
-            animation: sleepNod 5s ease-in-out infinite !important;
-            transform-origin: 50% 20%;
-        }
-
-        @keyframes sleepNod {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            20% { transform: translateY(3vh) rotate(1.5deg); }
-            60% { transform: translateY(2vh) rotate(-1deg); }
-        }
-
-        /* ═══════════════════════════════════════════════════════════════
-           STATE 2 — TALKING
-           ═══════════════════════════════════════════════════════════════ */
-        body.theme-robot.talking {
-            --c-eye: #00f0ff;
-            --c-glow: rgba(0, 240, 255, 0.75);
-            --c-glow2: rgba(0, 240, 255, 0.18);
-            --c-mouth: #00f0ff;
-        }
-
-        /* Apply random blinking to the eye boxes container so it doesn't interrupt internal shape animations */
-        body.theme-robot.talking .eye-box,
-        body.theme-robot.thinking .eye-box {
-            animation: randomBlink 10s ease-in-out infinite !important;
-            transform-origin: center center;
-        }
-
-        @keyframes randomBlink {
-            0%, 29%, 32%, 49%, 54%, 84%, 87%, 100% { transform: scaleY(1); }
-            30%, 50%, 52%, 85% { transform: scaleY(0.1); } /* Eyes snap shut */
-            31%, 51%, 53%, 86% { transform: scaleY(1); } /* Eyes snap open (includes a cute double blink at 50%!) */
-        }
-
-        @keyframes talkEye {
-            0%, 100% { transform: scale(1); }
-            40% { transform: scale(1.06, 1.08); } 
-            70% { transform: scale(1.06, 0.92); }
-        }
-        
-        body.theme-robot.talking .eye { animation: talkEye 0.45s ease-in-out infinite !important; }
-
-        @keyframes talkMouth {
-            0% { transform: scale(0.8, 1); }
-            100% { transform: scale(1.8, 1.4); } 
-        }
-
-        body.theme-robot.talking .mouth {
-            animation: talkMouth 0.15s cubic-bezier(0.3, 0, 0.7, 1) infinite alternate !important;
-        }
-
-        /* ═══════════════════════════════════════════════════════════════
-           STATE 3 — THINKING 
-           ═══════════════════════════════════════════════════════════════ */
-        body.theme-robot.thinking {
-            --c-eye: #c8a8ff;
-            --c-glow: rgba(170, 130, 255, 0.60);
-            --c-glow2: rgba(170, 130, 255, 0.14);
-            --c-mouth: #c8a8ff;
-        }
-        
-        body.theme-robot.thinking .eyes-wrapper { top: 27vh !important; }
-
-        body.theme-robot.thinking .eye {
-            height: 22vmin !important;
-            animation: thinkPulse 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
-        }
-
-        @keyframes thinkPulse {
-            0%, 100% { transform: translate(0vmin, 0vmin); }
-            25% { transform: translate(-2.5vmin, -2vmin); }
-            50% { transform: translate(2.5vmin, -2vmin); }
-            75% { transform: translate(-1.5vmin, 1vmin); }
-        }
-
-        body.theme-robot.thinking .mouth {
-            width: 6vmin !important;
-            height: 6vmin !important;
-            border-radius: 50% !important;
-            margin-left: 10vmin !important; /* Offset mouth like 🤔 */
-            animation: qRock 1.4s ease-in-out infinite alternate !important;
-        }
-
-        @keyframes qRock {
-            from { transform: translateX(-50%) rotate(-10deg) scale(0.93); }
-            to { transform: translateX(-50%) rotate(10deg) scale(1.10); }
-        }
-
-        /* ═══════════════════════════════════════════════════════════════
-           STATE 4 — ANGRY (Fierce Skewed Visor & Pulsing Rage)
-           ═══════════════════════════════════════════════════════════════ */
-        body.theme-robot.angry {
-            --c-eye: #ff1100;
-            --c-glow: rgba(255, 17, 0, 0.75);
-            --c-glow2: rgba(255, 17, 0, 0.20);
-            --c-mouth: #ff1100;
-        }
-
-        body.theme-robot.angry .eye {
-            height: 12vmin !important; /* Narrowed intense glare */
-            margin-top: 10vmin !important; /* Lowered mechanical brows */
-            background: var(--c-eye) !important;
-            border-radius: 2vmin !important; 
-            border: none !important;
-            filter: none !important;
-            clip-path: none !important;
-            box-shadow: 0 0 30px var(--c-glow), 0 0 60px var(--c-glow2) !important;
-        }
-        
-        body.theme-robot.angry .eye-box:nth-child(1) .eye {
-            /* Left eye: skew positive to angle inner side strongly down! */
-            transform: skewY(20deg) !important;
-            animation: ragePulseLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate !important;
-        }
-
-        body.theme-robot.angry .eye-box:nth-child(2) .eye {
-            /* Right eye: skew negative to angle inner side strongly down! */
-            transform: skewY(-20deg) !important;
-            animation: ragePulseRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate !important;
-        }
-        
-        @keyframes ragePulseLeft {
-            0% { box-shadow: 0 0 15px 5px var(--c-glow); transform: skewY(20deg) scale(1); }
-            100% { box-shadow: 0 0 60px 20px var(--c-glow); transform: skewY(20deg) scale(1.08); }
-        }
-
-        @keyframes ragePulseRight {
-            0% { box-shadow: 0 0 15px 5px var(--c-glow); transform: skewY(-20deg) scale(1); }
-            100% { box-shadow: 0 0 60px 20px var(--c-glow); transform: skewY(-20deg) scale(1.08); }
-        }
-
-        body.theme-robot.angry .mouth {
-            width: 14vmin !important;
-            height: 5vmin !important;
-            background: transparent !important;
-            border: none !important;
-            border-top: 2vmin solid var(--c-mouth) !important; 
-            border-radius: 50% !important; 
-            margin-top: -2vmin !important;
-            box-shadow: 0 -15px 30px rgba(255, 17, 0, 0.4) !important; /* dramatic intense underglow */
-        }
-        
-        body.theme-robot.angry #face-anchor {
-            animation: furiousTremor 0.15s ease-in-out infinite alternate !important;
-        }
-        
-        @keyframes furiousTremor {
-            0% { transform: translateY(0) translateX(-2px); }
-            100% { transform: translateY(1vmin) translateX(2px); }
-        }
-
-        /* ═══════════════════════════════════════════════════════════════
-           STATE 5 — SHOUTING
-           ═══════════════════════════════════════════════════════════════ */
-        body.theme-robot.shouting {
-            --c-eye: #ff1144;
-            --c-glow: rgba(255, 17, 68, 0.90);
-            --c-glow2: rgba(255, 17, 68, 0.25);
-            --c-mouth: #ff1144;
-        }
-
-        body.theme-robot.shouting .eye {
-            animation: eyeFlicker 0.28s step-start infinite !important;
-            transform: scale(1.2) !important;
-            height: 25vmin !important;
-        }
-
-        @keyframes eyeFlicker {
-            0%, 48%, 100% { opacity: 1; }
-            50% { opacity: 0.08; }
-        }
-
-        body.theme-robot.shouting .mouth {
-            width: 0 !important;
-            height: 0 !important;
-            border: none !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            overflow: visible !important;
-        }
-
-        body.theme-robot.shouting .mouth::after {
-            content: '!';
-            position: absolute;
-            top: -10vmin;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 25vmin;
-            font-weight: 900;
-            color: #ff1144;
-            font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
-            text-shadow: 0 0 30px var(--c-glow);
-        }
-
-        @keyframes alarmShake {
-            0%, 100% { transform: translate(0, 0); }
-            15% { transform: translate(-5px, -1px); }
-            35% { transform: translate(5px, -2px); }
-            55% { transform: translate(-4px, 1px); }
-            75% { transform: translate(4px, -1px); }
-        }
-
-        body.theme-robot.shouting #face-anchor {
-            animation: alarmShake 0.45s ease-in-out infinite !important;
-        }
-
-        /* ═══════════════════════════════════════════════════════════════
-           STATE 6 — JAMMING (Clean Bouncy Happy Vibe)
-           ═══════════════════════════════════════════════════════════════ */
-        body.theme-robot.jamming {
-            --c-eye: #00ffbb; /* Fresh energetic mint green/cyan */
-            --c-glow: rgba(0, 255, 187, 0.7);
-            --c-glow2: rgba(0, 255, 187, 0.2);
-            --c-mouth: #00ffbb;
-        }
-
-        body.theme-robot.jamming .eye {
-            /* Keep the classic, perfect rectangular robot eyes, but make them dance cleanly! */
-            height: 30vmin !important;
-            margin-top: 0 !important;
-            background: var(--c-eye) !important;
-            border-radius: 6vmin !important; 
-            border: none !important;
-            box-shadow: 0 0 30px 5px var(--c-glow), 0 0 60px 15px var(--c-glow2) !important;
-            filter: none !important;
-            clip-path: none !important;
-            /* Disney-style squash and stretch bouncing to the music */
-            animation: bounceDance 0.4s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate !important;
-        }
-
-        body.theme-robot.jamming .eye::before {
-            display: none !important;
-        }
-
-        body.theme-robot.jamming .eye-box:nth-child(2) .eye {
-            animation-delay: 0.1s !important; /* Slight offset for a groovy feeling */
-        }
-
-        @keyframes bounceDance {
-            0% { transform: translateY(2vmin) scale(1.05, 0.95); box-shadow: 0 0 40px 10px var(--c-glow); } /* Squash down heavily */
-            100% { transform: translateY(-4vmin) scale(0.95, 1.05); box-shadow: 0 0 20px 5px var(--c-glow); } /* Stretch up lightly */
-        }
-
-        body.theme-robot.jamming .mouth {
-            width: 12vmin !important;
-            height: 8vmin !important;
-            background: var(--c-mouth) !important;
-            border: none !important;
-            border-radius: 2vmin 2vmin 12vmin 12vmin !important; /* Adorable singing 'D' shape! */
-            margin-top: 0 !important;
-            box-shadow: 0 10px 30px var(--c-glow) !important;
-            animation: bounceSing 0.4s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate !important;
-        }
-        
-        @keyframes bounceSing {
-            0% { transform: translateY(2vmin) scale(0.9, 0.6); } /* squishes and closes slightly */
-            100% { transform: translateY(-4vmin) scale(1.2, 1.4); } /* stretches UP and sings LOUDLY! */
-        }
-        
-        body.theme-robot.jamming #face-anchor {
-            /* Swaying happily */
-            animation: happySway 1.6s ease-in-out infinite alternate !important;
-        }
-        
-        @keyframes happySway {
-            0% { transform: translateY(0) rotate(-6deg); }
-            100% { transform: translateY(-1vmin) rotate(6deg); } 
-        }
-
+        /* Theme-Robot Specific States */
+        body.theme-robot.sleeping { --c-eye: rgba(0, 240, 255, 0.3); --c-mouth: rgba(0, 240, 255, 0.2); }
+        body.theme-robot.angry { --c-eye: #ff1100; --c-glow: rgba(255, 17, 0, 0.75); }
+        body.theme-robot.thinking { --c-eye: #c8a8ff; --c-glow: rgba(170, 130, 255, 0.6); }
+        body.theme-robot.shouting .mouth::after { content: '!'; position: absolute; top: -10vmin; left: 50%; transform: translateX(-50%); font-size: 25vmin; color: #ff1144; font-weight: 900; }
     </style>
 </head>
 
@@ -1079,284 +319,92 @@
     <div id="floating-timer" class="hidden">00:00</div>
 
     <div id="alarm-queue">
-        <h3>⚙️ Active Protocols</h3>
+        <h3 style="margin: 10px; font-size: 12px; text-transform: uppercase;">⚙️ Active Protocols</h3>
         <div id="alarm-list"></div>
     </div>
 
     <div id="music-hud">
-        <span style="animation: pulse 1s infinite alternate;">🎵</span>
+        <span>🎵</span>
         <marquee scrollamount="5" id="song-title-text">Waiting for track...</marquee>
     </div>
 
     <div id="face-anchor">
-        <div class="pore p1"></div>
-        <div class="pore p2"></div>
-        <div class="pore p3"></div>
-        <div class="pore p4"></div>
-        <div class="pore p5"></div>
-        <div class="pore p6"></div>
-        <div class="pore p7"></div>
-        <div class="pore p8"></div>
-        <div class="pore p9"></div>
-        <div class="pore p10"></div>
-        <div class="pore p11"></div>
+        <div class="pore p1"></div><div class="pore p2"></div><div class="pore p3"></div><div class="pore p4"></div>
+        <div class="pore p5"></div><div class="pore p6"></div><div class="pore p7"></div><div class="pore p8"></div>
+        <div class="pore p9"></div><div class="pore p10"></div><div class="pore p11"></div>
 
         <div class="eyes-wrapper">
-            <div class="eye-box">
-                <div class="lash l1"></div>
-                <div class="lash l2"></div>
-                <div class="lash l3"></div>
-                <div class="eye">
-                    <div class="eyelid"></div>
-                    <div class="iris">
-                        <div class="pupil">
-                            <div class="catchlight"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="eye-box">
-                <div class="lash l1"></div>
-                <div class="lash l2"></div>
-                <div class="lash l3"></div>
-                <div class="eye">
-                    <div class="eyelid"></div>
-                    <div class="iris">
-                        <div class="pupil">
-                            <div class="catchlight"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="eye-box"><div class="lash l1"></div><div class="lash l2"></div><div class="lash l3"></div><div class="eye"><div class="eyelid"></div><div class="iris"><div class="pupil"><div class="catchlight"></div></div></div></div></div>
+            <div class="eye-box"><div class="lash l1"></div><div class="lash l2"></div><div class="lash l3"></div><div class="eye"><div class="eyelid"></div><div class="iris"><div class="pupil"><div class="catchlight"></div></div></div></div></div>
         </div>
 
         <div class="nose"></div>
 
-        <div class="cheek left">
-            <div class="freckle f1"></div>
-            <div class="freckle f2"></div>
-            <div class="freckle f3"></div>
-        </div>
-        <div class="cheek right">
-            <div class="freckle f1"></div>
-            <div class="freckle f2"></div>
-            <div class="freckle f3"></div>
-        </div>
+        <div class="cheek left"><div class="freckle f1"></div><div class="freckle f2"></div><div class="freckle f3"></div></div>
+        <div class="cheek right"><div class="freckle f1"></div><div class="freckle f2"></div><div class="freckle f3"></div></div>
 
         <div class="mouth-wrapper">
-            <div class="mouth">
-                <div class="teeth-wrapper">
-                    <div class="tooth"></div>
-                    <div class="tooth"></div>
-                </div>
-                <div class="tongue"></div>
-            </div>
+            <div class="mouth"><div class="teeth-wrapper"><div class="tooth"></div><div class="tooth"></div></div><div class="tongue"></div></div>
         </div>
+    </div>
+
+    <div id="demo-controls" style="display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(15, 23, 42, 0.9); padding: 15px; border-radius: 20px; border: 2px solid #38bdf8; backdrop-filter: blur(10px); font-family: 'Orbitron', sans-serif; width: 320px;">
+        <h3 style="color: #fde047; margin: 0 0 10px 0; text-align: center; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Animation Sandbox</h3>
+        
+        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 8px;">
+            <button onclick="setEmotion('')" style="flex:1; background: #334155; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Neutral</button>
+            <button onclick="setEmotion('talking')" style="flex:1; background: #0ea5e9; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold;">Talking</button>
+            <button onclick="setEmotion('sleeping')" style="flex:1; background: #6366f1; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Sleeping</button>
+            <button onclick="setEmotion('jamming')" style="flex:1; background: #22c55e; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold;">Jamming</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px;">
+            <button onclick="setEmotion('angry')" style="flex:1; background: #ef4444; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Angry</button>
+            <button onclick="setEmotion('thinking')" style="flex:1; background: #a855f7; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Thinking</button>
+            <button onclick="setEmotion('shouting')" style="flex:1; background: #f97316; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Shouting</button>
+        </div>
+
+        <button onclick="toggleTheme()" style="background: #fff; color: #0f172a; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: 900; text-transform: uppercase; font-size: 12px;">🔄 Swap Visual Theme</button>
     </div>
 
     <script>
         const socket = io();
-        let sleepTimer;
-        let isJamming = false;
+        const currentThemeFromConfig = "{{ config.face_theme | default('theme-spongebob') }}";
 
-        const currentTheme = "{{ config.face_theme | default('theme-spongebob') }}";
-
-        function setFaceState(state) {
-            document.body.className = `${currentTheme} ${state}`.trim();
-        }
-
-        let idleTimeout;
-        function resetIdleTimer() {
-            clearTimeout(idleTimeout);
-            idleTimeout = setTimeout(() => {
-                if (!document.body.classList.contains("talking") && !document.body.classList.contains("jamming")) {
-                    setFaceState("sleeping");
-                }
-            }, 180000);
-        }
-        resetIdleTimer();
-
-        setInterval(() => {
-            if (!document.body.classList.contains("sleeping") && !document.body.classList.contains("angry")) {
-                if (Math.random() > 0.9) {
-                    let lids = document.querySelectorAll('.eyelid');
-                    lids.forEach(lid => lid.style.top = "-5%");
-                    setTimeout(() => { lids.forEach(lid => lid.style.top = "-105%"); }, 150);
-                }
-
-                if (Math.random() > 0.4) {
-                    let rx = Math.floor(Math.random() * 40) + 10;
-                    let ry = Math.floor(Math.random() * 40) + 10;
-                    let irises = document.querySelectorAll('.iris');
-                    irises.forEach(iris => {
-                        iris.style.top = ry + "%";
-                        iris.style.left = rx + "%";
-                    });
-                }
-            }
-        }, 2000);
-
-        socket.on('hardware_command', (data) => {
-            resetIdleTimer();
-            const cmd = data.command;
-
-            if (cmd === "LED:BLUE") {
-                clearTimeout(sleepTimer);
-                setFaceState("");
-            }
-            else if (cmd === "LED:CYAN") {
-                clearTimeout(sleepTimer);
-                setFaceState("thinking");
-            }
-            else if (cmd === "LED:RED") {
-                clearTimeout(sleepTimer);
-                setFaceState("angry");
-                sleepTimer = setTimeout(() => { setFaceState("sleeping"); }, 3000);
-            }
-            else if (cmd === "LED:OFF") {
-                sleepTimer = setTimeout(() => {
-                    if (!document.body.classList.contains("talking") && !document.body.classList.contains("jamming")) {
-                        setFaceState("sleeping");
-                    }
-                }, 1000);
-            }
-        });
-
-        socket.on('llm_response', (data) => {
-            resetIdleTimer();
-            clearTimeout(sleepTimer);
-            setFaceState("talking");
-        });
-
-        socket.on('stop_talking', () => {
-            if (isJamming) {
-                setFaceState("jamming");
-            } else {
-                setFaceState("sleeping");
-            }
-        });
-
-        socket.on('music_start', () => {
-            resetIdleTimer();
-            isJamming = true;
-            setFaceState("jamming");
-        });
-
-        socket.on('music_stop', () => {
-            isJamming = false;
-            setFaceState("sleeping");
-            document.getElementById('music-hud').style.display = 'none';
-        });
-
-        socket.on('alarm_start', () => {
-            clearTimeout(sleepTimer);
-            setFaceState("shouting");
-        });
-
-        socket.on('alarm_stop', () => {
-            setFaceState("sleeping");
-            document.getElementById('floating-timer').classList.add('hidden');
-        });
-
-        let visualTimerInterval;
-        socket.on('start_visual_timer', (data) => {
-            let timeLeft = data.seconds;
-            const timerEl = document.getElementById('floating-timer');
-            timerEl.classList.remove('hidden');
-
-            const updateText = () => {
-                let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-                let s = (timeLeft % 60).toString().padStart(2, '0');
-                timerEl.innerText = `${m}:${s}`;
-            };
-
-            updateText();
-            clearInterval(visualTimerInterval);
-
-            visualTimerInterval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    clearInterval(visualTimerInterval);
-                    timerEl.classList.add('hidden');
-                } else {
-                    updateText();
-                }
-            }, 1000);
-        });
-
-        socket.on('update_alarms_ui', (alarms) => {
-            const queueContainer = document.getElementById('alarm-queue');
-            const list = document.getElementById('alarm-list');
-            list.innerHTML = '';
-
-            if (alarms.length === 0) {
-                queueContainer.style.display = 'none';
-                return;
-            }
-
-            queueContainer.style.display = 'block';
-            alarms.forEach(al => {
-                if (al.type === 'daily') {
-                    list.innerHTML += `<div class="glass-alarm-item">⏰ [${al.time}] ${al.label}</div>`;
-                } else {
-                    list.innerHTML += `<div class="glass-alarm-item">⏳ [Every ${al.minutes}m] ${al.label}</div>`;
-                }
-            });
-        });
-
-        socket.emit('request_alarms');
-
-        socket.on('now_playing', (data) => {
-            document.getElementById('song-title-text').innerText = data.title;
-            document.getElementById('music-hud').style.display = 'flex';
-        });
-
-        socket.on('reload_face', () => {
-            window.location.reload();
-        });
-    </script>
-
-    <div id="demo-controls" style="display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(15, 23, 42, 0.8); padding: 15px 30px; border-radius: 20px; border: 2px solid #38bdf8; backdrop-filter: blur(10px); gap: 15px; font-family: 'Orbitron', sans-serif;">
-        <h3 style="color: #fde047; margin: 0 0 10px 0; text-align: center; text-transform: uppercase; font-size: 16px;">Animation Sandbox</h3>
-        <div style="display: flex; gap: 10px; justify-content: center;">
-            <button onclick="setEmotion('')" style="background: #334155; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold;">Neutral</button>
-            <button onclick="setEmotion('talking')" style="background: #38bdf8; color: black; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold;">Talking</button>
-            <button onclick="setEmotion('sleeping')" style="background: #a855f7; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold;">Sleeping</button>
-            <button onclick="setEmotion('jamming')" style="background: #22c55e; color: black; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold;">Jamming</button>
-        </div>
-        <div style="margin-top: 15px; text-align: center;">
-            <button onclick="toggleTheme()" style="background: #ea580c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: inherit; width: 100%; font-weight: bold; text-transform: uppercase;">🔄 Swap UI Theme</button>
-        </div>
-    </div>
-
-    <script>
-        // Check if the URL contains "?demo=true"
+        // --- GITHUB DEMO LOGIC ---
         if (window.location.search.includes('demo=true')) {
             document.getElementById('demo-controls').style.display = 'block';
         }
 
-        // Functions to control the face from the browser
         function setEmotion(state) {
-            // 1. Check if the Robot theme is currently active
             let isRobot = document.body.classList.contains('theme-robot');
-            
-            // 2. Clear out the old emotions, and set the new one
             document.body.className = state; 
-            
-            // 3. Put the correct theme class back on!
-            if (isRobot) {
-                document.body.classList.add('theme-robot');
-            } else {
-                document.body.classList.add('theme-spongebob');
-            }
+            if (isRobot) document.body.classList.add('theme-robot');
+            else document.body.classList.add('theme-spongebob');
         }
 
         function toggleTheme() {
-            // Swap between the standard organic theme and the sleek robot theme!
             document.body.classList.toggle('theme-robot');
             document.body.classList.toggle('theme-spongebob');
         }
+
+        // --- PRODUCTION SOCKET LOGIC ---
+        socket.on('hardware_command', (data) => {
+            const cmd = data.command;
+            if (cmd === "LED:BLUE") setFaceState("");
+            else if (cmd === "LED:CYAN") setFaceState("thinking");
+            else if (cmd === "LED:RED") setFaceState("angry");
+            else if (cmd === "LED:OFF") setTimeout(() => setFaceState("sleeping"), 1000);
+        });
+
+        socket.on('llm_response', () => setFaceState("talking"));
+        socket.on('music_start', () => setFaceState("jamming"));
+        socket.on('alarm_start', () => setFaceState("shouting"));
+
+        function setFaceState(state) {
+            let theme = document.body.classList.contains('theme-robot') ? 'theme-robot' : 'theme-spongebob';
+            document.body.className = `${theme} ${state}`.trim();
+        }
     </script>
 </body>
-
 </html>
