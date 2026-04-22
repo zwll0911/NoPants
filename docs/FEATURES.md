@@ -25,7 +25,7 @@ The settings portal is broken into three distinct, highly functional tabs:
 
 ### The Animated Face (`face.html`)
 
-[![Play Animation Demo](https://img.shields.io/badge/👁️_Click_Here_to_Open_Face_Sandbox!-2ea44f?style=for-the-badge)](https://zwll0911.github.io/Nopants/templates/face.html?demo=true)
+[![Play Animation Demo](https://img.shields.io/badge/👁️_Click_Here_to_Open_Face_Sandbox!-2ea44f?style=for-the-badge)](https://zwll0911.github.io/NoPants/templates/face.html?demo=true)
 
 When in rest mode, the physical robot display runs this route in Chromium Kiosk Mode. It relies heavily on CSS state machines rather than heavy video files. When Python emits a SocketIO event (like `llm_response`), the JavaScript injects dynamic classes (`<body class="talking">`) into the HTML, automatically triggering smooth, CSS-driven animations.
 
