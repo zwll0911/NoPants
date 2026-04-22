@@ -76,7 +76,7 @@ Triggered by saying *"Study mode"* or *"Pomodoro"*. This function alters the glo
 
 ### Custom Web Arcade (`game.html`)
 
-[![Play Game Demo](https://img.shields.io/badge/🎮_Click_Here_to_Play_the_Simulation!-2ea44f?style=for-the-badge)](https://zwll0911.github.io/Nopants/templates/game.html)
+[![Play Game Demo](https://img.shields.io/badge/🎮_Click_Here_to_Play_the_Simulation!-2ea44f?style=for-the-badge)](https://zwll0911.github.io/NoPants/templates/game.html)
 
 Because the NoPants UI is web-based, the system features a dedicated `/game` route containing fully playable HTML5 Canvas arcade games:
 * **Tetris**: A classic block-stacking implementation.
