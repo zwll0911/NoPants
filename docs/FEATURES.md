@@ -24,8 +24,19 @@ The settings portal is broken into three distinct, highly functional tabs:
   A live view of all recurring alarms, study timers, and intervals. Users can terminate background threads directly from this UI.
 
 ### The Animated Face (`face.html`)
-When in rest mode, the physical robot display runs this route in Chromium Kiosk Mode. It relies heavily on CSS state machines. When Python emits a `music_start` or `llm_response` socket, the JavaScript injects dynamic classes (`<body class="talking">`) into the HTML, automatically triggering smooth, CSS-driven eye-blinking, mouth-moving, and head-bobbing animations.
 
+[![Play Animation Demo](https://img.shields.io/badge/👁️_Click_Here_to_Open_Face_Sandbox!-2ea44f?style=for-the-badge)](https://zwll0911.github.io/nopants/templates/face.html?demo=true)
+
+When in rest mode, the physical robot display runs this route in Chromium Kiosk Mode. It relies heavily on CSS state machines rather than heavy video files. When Python emits a SocketIO event (like `llm_response`), the JavaScript injects dynamic classes (`<body class="talking">`) into the HTML, automatically triggering smooth, CSS-driven animations.
+
+It features full support for multiple design themes. *(Click the green sandbox button above to interact with the animations live in your browser!)*
+
+| State / Emotion | Standard Theme | Holographic Theme |
+| :--- | :---: | :---: |
+| **Neutral / Idle** | ![Idle 1](../Pics_&_Videos/face_idle_std.png) | ![Idle 2](../Pics_&_Videos/face_idle_holo.png) |
+| **Talking** | ![Talk 1](../Pics_&_Videos/face_talk_std.png) | ![Talk 2](../Pics_&_Videos/face_talk_holo.png) |
+| **Sleeping** | ![Sleep 1](../Pics_&_Videos/face_sleep_std.png) | ![Sleep 2](../Pics_&_Videos/face_sleep_holo.png) |
+| **Jamming (Music)** | ![Jam 1](../Pics_&_Videos/face_jam_std.png) | ![Jam 2](../Pics_&_Videos/face_jam_holo.png) |
 ---
 
 ## 👔 2. Productivity & Planning
