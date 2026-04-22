@@ -153,10 +153,9 @@
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; cx = canvas.width / 2; cy = canvas.height / 2; });
 
         // ==========================================
-        // HARDWARE INPUT ROUTER
+        // UNIVERSAL INPUT ROUTER (Handles Socket & Keyboard!)
         // ==========================================
-        socket.on('game_input', (data) => {
-            const cmd = data.command;
+        function handleGameInput(cmd) {
             const now = Date.now();
 
             if (isGameOver) {
@@ -265,6 +264,34 @@
                     document.getElementById('game-hud-center').classList.remove('hidden');
                     socket.emit('hardware_command', { command: 'LED:CYAN' }); 
                 }
+            }
+        }
+
+        // 1. Listen for ESP32 Socket commands
+        socket.on('game_input', (data) => {
+            handleGameInput(data.command);
+        });
+
+        // 2. Listen for GitHub Pages Keyboard commands
+        document.addEventListener('keydown', function(event) {
+            // Prevent the arrow keys and spacebar from scrolling the webpage up/down
+            if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight", " "].indexOf(event.key) > -1) {
+                event.preventDefault();
+            }
+
+            let simCmd = null;
+            const key = event.key;
+            
+            if (key === 'ArrowRight') simCmd = "KNOB:RIGHT";
+            else if (key === 'ArrowLeft') simCmd = "KNOB:LEFT";
+            else if (key === 'Enter') simCmd = "KNOB:PRESS";
+            else if (key === 'ArrowUp' || key === ' ') simCmd = "BTN:1";
+            else if (key === 'ArrowDown') simCmd = "BTN:2";
+            else if (key.toLowerCase() === 'b' || key.toLowerCase() === 'x') simCmd = "BTN:3";
+            else if (key.toLowerCase() === 'p' || key === 'Escape') simCmd = "KNOB:PRESS";
+
+            if (simCmd) {
+                handleGameInput(simCmd);
             }
         });
 
@@ -524,7 +551,6 @@
             
             te_next_type = Math.floor(Math.random() * 7) + 1; 
             
-            // THE FIX: Hide the standard HTML HUD entirely when playing Tetris!
             document.getElementById('hud-stat-3').classList.add('hidden');
             document.getElementById('game-hud-top-left').classList.add('hidden');
             document.getElementById('game-hud-top-right').classList.add('hidden');
