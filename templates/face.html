@@ -23,6 +23,9 @@
             position: relative;
             width: 100vw;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* --- SPONGE PORES --- */
@@ -46,271 +49,127 @@
         .p10 { bottom: 5%; left: 38vw; width: 7vmin; height: 7vmin; }
         .p11 { bottom: 50%; right: 8vw; width: 4vmin; height: 4vmin; }
 
-        /* --- EYE STRUCTURE --- */
+        /* --- CORE FACE CONTAINER (Keeps features together) --- */
+        #face-features {
+            position: relative;
+            width: 80vmin;
+            height: 80vmin;
+            z-index: 2;
+        }
+
         .eyes-wrapper {
             position: absolute;
-            top: 18vh;
+            top: 10%;
             left: 0;
-            width: 100vw;
+            width: 100%;
             display: flex;
             justify-content: center;
-            gap: 4vmin;
-            z-index: 2;
+            gap: 5vmin;
         }
 
         .eye-box {
             position: relative;
-            width: 28vmin;
-            height: 28vmin;
+            width: 32vmin;
+            height: 32vmin;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .eye {
-            width: 100%;
-            height: 100%;
-            background: white;
-            border-radius: 50%;
-            border: 1vmin solid #111;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.1);
+            width: 100%; height: 100%;
+            background: white; border-radius: 50%;
+            border: 1vmin solid #111; overflow: hidden;
+            position: relative; box-shadow: 0 1vmin 3vmin rgba(0, 0, 0, 0.1);
             transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
         .iris {
-            position: absolute;
-            top: 20%;
-            left: 20%;
-            width: 60%;
-            height: 60%;
-            background-color: #29b6f6;
-            border: 1vmin solid #111;
-            border-radius: 50%;
+            position: absolute; top: 20%; left: 20%; width: 60%; height: 60%;
+            background-color: #29b6f6; border: 1vmin solid #111; border-radius: 50%;
             transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        .pupil {
-            position: absolute;
-            top: 25%;
-            left: 25%;
-            width: 50%;
-            height: 50%;
-            background-color: #111;
-            border-radius: 50%;
-        }
-
-        .catchlight {
-            position: absolute;
-            top: 15%;
-            left: 15%;
-            width: 30%;
-            height: 30%;
-            background-color: white;
-            border-radius: 50%;
-        }
-
-        .eyelid {
-            position: absolute;
-            top: -105%;
-            left: -5%;
-            width: 110%;
-            height: 100%;
-            background: #fceb3b;
-            border-bottom: 1.5vmin solid #111;
-            transition: top 0.3s ease;
-            z-index: 5;
-        }
-
-        .lash {
-            position: absolute;
-            width: 1vmin;
-            height: 5vmin;
-            background: #111;
-            top: -1vmin;
-            z-index: 1;
-            transition: opacity 0.2s;
-        }
-
+        .pupil { position: absolute; top: 25%; left: 25%; width: 50%; height: 50%; background-color: #111; border-radius: 50%; }
+        .catchlight { position: absolute; top: 15%; left: 15%; width: 30%; height: 30%; background-color: white; border-radius: 50%; }
+        .eyelid { position: absolute; top: -105%; left: -5%; width: 110%; height: 100%; background: #fceb3b; border-bottom: 1.5vmin solid #111; transition: top 0.3s ease; z-index: 5; }
+        .lash { position: absolute; width: 1vmin; height: 5vmin; background: #111; top: -1vmin; z-index: 1; }
         .lash.l1 { left: 15%; transform: rotate(-30deg); }
         .lash.l2 { left: 50%; transform: translateX(-50%); top: -3vmin; }
         .lash.l3 { right: 15%; transform: rotate(30deg); }
 
-        /* --- NOSE --- */
         .nose {
-            position: absolute;
-            top: 40vh;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 5vmin;
-            height: 12vmin;
-            background: #fceb3b;
-            border: 1vmin solid #111;
-            border-bottom: none;
-            border-top: none;
-            border-radius: 5vmin;
-            z-index: 4;
-            transition: transform 0.3s;
+            position: absolute; top: 42%; left: 50%; transform: translateX(-50%);
+            width: 6vmin; height: 13vmin; background: #fceb3b;
+            border: 1vmin solid #111; border-bottom: none; border-top: none;
+            border-radius: 6vmin; z-index: 4;
         }
 
-        /* --- CHEEKS & FRECKLES --- */
         .cheek {
-            position: absolute;
-            top: 52vh;
-            width: 14vmin;
-            height: 10vmin;
-            background: transparent;
-            border-top: 1vmin solid #f06292;
-            border-radius: 50%;
-            z-index: 3;
-            transition: all 0.3s;
+            position: absolute; top: 48%; width: 16vmin; height: 11vmin;
+            border-top: 1vmin solid #f06292; border-radius: 50%; z-index: 3;
         }
+        .cheek::before { content: ''; position: absolute; top: -3vmin; left: 2vmin; width: 12vmin; height: 9vmin; background: #f06292; border-radius: 50%; opacity: 0.8; }
+        .cheek.left { left: -5vmin; }
+        .cheek.right { right: -5vmin; }
 
-        .cheek::before {
-            content: '';
-            position: absolute;
-            top: -3vmin;
-            left: 1vmin;
-            width: 11vmin;
-            height: 8vmin;
-            background: #f06292;
-            border-radius: 50%;
-            opacity: 0.8;
-        }
+        .freckle { position: absolute; width: 1.5vmin; height: 1.5vmin; background: #d81b60; border-radius: 50%; }
+        .f1 { top: 0; left: 4vmin; } .f2 { top: 2vmin; left: 1.5vmin; } .f3 { top: 2vmin; left: 7vmin; }
 
-        .cheek.left { left: 50%; margin-left: -32vmin; }
-        .cheek.right { right: 50%; margin-right: -32vmin; }
-
-        .freckle {
-            position: absolute;
-            width: 1.5vmin;
-            height: 1.5vmin;
-            background: #d81b60;
-            border-radius: 50%;
-            z-index: 4;
-        }
-
-        .f1 { top: 0; left: 3vmin; }
-        .f2 { top: 2vmin; left: 1vmin; }
-        .f3 { top: 2vmin; left: 6vmin; }
-
-        /* --- MOUTH & TEETH --- */
         .mouth-wrapper {
-            position: absolute;
-            top: 58vh;
-            left: 0;
-            width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2;
+            position: absolute; bottom: 5%; left: 0; width: 100%;
+            display: flex; justify-content: center; align-items: center;
         }
 
         .mouth {
-            position: relative;
-            width: 35vmin;
-            height: 15vmin;
-            background: #410000;
-            border: 1vmin solid #111;
-            border-radius: 2vmin 2vmin 20vmin 20vmin;
-            overflow: hidden;
+            position: relative; width: 38vmin; height: 16vmin;
+            background: #410000; border: 1vmin solid #111;
+            border-radius: 2vmin 2vmin 20vmin 20vmin; overflow: hidden;
             transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
-        .teeth-wrapper {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 0.5vmin;
-            transition: opacity 0.2s;
-        }
-
-        .tooth {
-            width: 5vmin;
-            height: 6vmin;
-            background: white;
-            border: 1vmin solid #111;
-            border-top: none;
-            border-radius: 0 0 1vmin 1vmin;
-        }
-
-        .tongue {
-            position: absolute;
-            bottom: -2vmin;
-            left: 15%;
-            width: 70%;
-            height: 8vmin;
-            background: #f48fb1;
-            border-radius: 50%;
-            border: 1vmin solid #111;
-            transition: opacity 0.2s;
-        }
+        .teeth-wrapper { position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: flex; gap: 1vmin; }
+        .tooth { width: 6vmin; height: 7vmin; background: white; border: 1vmin solid #111; border-top: none; border-radius: 0 0 1vmin 1vmin; }
+        .tongue { position: absolute; bottom: -2vmin; left: 15%; width: 70%; height: 8vmin; background: #f48fb1; border-radius: 50%; border: 1vmin solid #111; }
 
         /* =========================================
-           STATE MACHINE CSS
-           ========================================= */
-        body.sleeping .eye {
-            height: 45%; width: 85%; background: transparent; border: none;
-            border-bottom: 1.5vmin solid #111; border-radius: 50%; box-shadow: none; margin-top: 15%;
-        }
-        body.sleeping .eyelid, body.sleeping .iris, body.sleeping .lash { opacity: 0; display: none; }
-        body.sleeping .mouth { height: 8vmin; width: 25vmin; border-radius: 2vmin 2vmin 15vmin 15vmin; }
-        body.sleeping .tongue { opacity: 0; }
-        body.sleeping .nose { transform: translate(-50%, 2vmin); }
-        body.sleeping .cheek { top: 50vh; }
-
-        @keyframes talk { 0% { height: 10vmin; } 100% { height: 18vmin; border-radius: 2vmin 2vmin 20vmin 20vmin; } }
-        body.talking .mouth { animation: talk 0.15s infinite alternate; }
-        body.talking .nose { transform: translate(-50%, -1vmin); }
-
-        body.angry .eyelid { top: -45%; transform: scale(1.1) rotate(15deg); }
-        body.angry .eye-box:nth-child(2) .eyelid { transform: scale(1.1) rotate(-15deg); }
-        body.angry .iris { background: #f44336; }
-        body.angry .lash { opacity: 0; }
-        body.angry .mouth { height: 4vmin; border-radius: 50vmin 50vmin 0 0; background: transparent; border: none; border-top: 1.5vmin solid #111; margin-top: 5vmin; }
-        body.angry .teeth-wrapper, body.angry .tongue { opacity: 0; }
-
-        body.thinking .iris { top: 5%; left: 40%; }
-        @keyframes ponder { 0% { transform: translateX(12vmin) scale(0.9); } 100% { transform: translateX(18vmin) scale(1.1); } }
-        body.thinking .mouth { height: 6vmin; width: 6vmin; border-radius: 50%; background: #410000; border: 1vmin solid #111; margin-top: 2vmin; animation: ponder 0.5s infinite alternate ease-in-out; }
-        body.thinking .teeth-wrapper, body.thinking .tongue { opacity: 0; }
-
-        body.shouting .iris { top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.3); }
-        body.shouting .mouth { height: 25vmin; width: 35vmin; border-radius: 20px 20px 120px 120px; bottom: 10%; animation: screamShake 0.1s infinite alternate; }
-        @keyframes screamShake { 0% { transform: translateX(-52%) translateY(3px); } 100% { transform: translateX(-48%) translateY(-3px); } }
-
-        @keyframes headBob { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-15px) rotate(2deg); } }
-        body.jamming #face-anchor { animation: headBob 0.6s infinite alternate ease-in-out; }
-
-        /* =========================================
-           HUD ELEMENTS & THEMES
+           HUD ELEMENTS
            ========================================= */
         #music-hud, #alarm-queue, #floating-timer {
             background: linear-gradient(135deg, rgba(5, 10, 15, 0.8), rgba(0, 0, 0, 0.6));
-            backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); color: #fff; z-index: 1000;
+            backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff; position: absolute; z-index: 1000; font-family: 'Inter', sans-serif;
         }
 
-        #music-hud { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); padding: 12px 25px; border-radius: 40px; display: none; align-items: center; gap: 12px; }
-        #floating-timer { position: absolute; bottom: 30px; right: 30px; padding: 12px 25px; border-radius: 30px; font-size: 24px; color: #fde047; }
+        #music-hud { top: 20px; left: 20px; padding: 10px 20px; border-radius: 40px; display: none; align-items: center; gap: 10px; max-width: 250px; }
+        #alarm-queue { top: 20px; right: 20px; padding: 15px; border-radius: 15px; display: none; width: 200px; }
+        #floating-timer { bottom: 20px; right: 20px; padding: 10px 20px; border-radius: 30px; font-size: 20px; color: #fde047; font-weight: 900; }
+        .glass-alarm-item { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; font-size: 11px; margin-top: 5px; color: #00f0ff; }
 
-        /* THEME 2: AI-BOT */
-        body.theme-robot {
-            --c-eye: #00d8ff; --c-glow: rgba(0, 216, 255, 0.65); --c-mouth: #00d8ff;
-            background: radial-gradient(ellipse at 50% 42%, #0d2035 0%, #060f1c 55%, #020810 100%) !important;
-        }
+        /* THEME 2: ROBOT */
+        body.theme-robot { background: radial-gradient(circle, #0d2035 0%, #020810 100%) !important; }
         body.theme-robot .pore, body.theme-robot .freckle, body.theme-robot .lash, body.theme-robot .eyelid, body.theme-robot .pupil, body.theme-robot .nose, body.theme-robot .tongue, body.theme-robot .iris, body.theme-robot .tooth, body.theme-robot .teeth-wrapper { display: none !important; }
-        body.theme-robot .eye { background: var(--c-eye) !important; border: none !important; border-radius: 8vmin !important; box-shadow: 0 0 30px 5px var(--c-glow) !important; }
-        body.theme-robot .mouth { width: 18vmin !important; height: 2vmin !important; background: var(--c-mouth) !important; border: none !important; border-radius: 5vmin !important; box-shadow: 0 0 15px var(--c-glow) !important; }
+        body.theme-robot .eye { background: #00d8ff !important; border: none !important; border-radius: 8vmin !important; box-shadow: 0 0 30px #00d8ff !important; }
+        body.theme-robot .mouth { width: 20vmin !important; height: 2vmin !important; background: #00d8ff !important; border: none !important; border-radius: 5vmin !important; box-shadow: 0 0 15px #00d8ff !important; }
+        body.theme-robot.shouting .mouth::after { content: '!'; position: absolute; top: -8vmin; left: 50%; transform: translateX(-50%); font-size: 20vmin; color: #ff1144; font-weight: 900; }
 
-        /* Theme-Robot Specific States */
-        body.theme-robot.sleeping { --c-eye: rgba(0, 240, 255, 0.3); --c-mouth: rgba(0, 240, 255, 0.2); }
-        body.theme-robot.angry { --c-eye: #ff1100; --c-glow: rgba(255, 17, 0, 0.75); }
-        body.theme-robot.thinking { --c-eye: #c8a8ff; --c-glow: rgba(170, 130, 255, 0.6); }
-        body.theme-robot.shouting .mouth::after { content: '!'; position: absolute; top: -10vmin; left: 50%; transform: translateX(-50%); font-size: 25vmin; color: #ff1144; font-weight: 900; }
+        /* EMOTION CLASSES (Logic same as before) */
+        body.sleeping .eye { height: 1.5vmin; background: transparent; border: none; border-bottom: 1.5vmin solid #111; border-radius: 0; box-shadow: none; margin-top: 10vmin; }
+        body.sleeping .eyelid, body.sleeping .iris, body.sleeping .lash, body.sleeping .tongue { display: none; }
+        body.sleeping .mouth { height: 6vmin; width: 20vmin; }
+        
+        @keyframes talkAnim { 0% { height: 10vmin; } 100% { height: 16vmin; } }
+        body.talking .mouth { animation: talkAnim 0.15s infinite alternate; }
+
+        body.angry .eyelid { top: -40%; transform: rotate(15deg); }
+        body.angry .eye-box:nth-child(2) .eyelid { transform: rotate(-15deg); }
+        body.angry .iris { background: #ff4444; }
+        body.angry .mouth { height: 3vmin; border-radius: 50% 50% 0 0; background: transparent; border: none; border-top: 1.5vmin solid #111; margin-top: 8vmin; }
+
+        @keyframes headBob { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+        body.jamming #face-features { animation: headBob 0.5s infinite alternate ease-in-out; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 
@@ -319,13 +178,13 @@
     <div id="floating-timer" class="hidden">00:00</div>
 
     <div id="alarm-queue">
-        <h3 style="margin: 10px; font-size: 12px; text-transform: uppercase;">⚙️ Active Protocols</h3>
+        <h3 style="margin: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Active Protocols</h3>
         <div id="alarm-list"></div>
     </div>
 
     <div id="music-hud">
         <span>🎵</span>
-        <marquee scrollamount="5" id="song-title-text">Waiting for track...</marquee>
+        <marquee scrollamount="3" id="song-title-text" style="font-size: 12px;">Waiting for track...</marquee>
     </div>
 
     <div id="face-anchor">
@@ -333,48 +192,37 @@
         <div class="pore p5"></div><div class="pore p6"></div><div class="pore p7"></div><div class="pore p8"></div>
         <div class="pore p9"></div><div class="pore p10"></div><div class="pore p11"></div>
 
-        <div class="eyes-wrapper">
-            <div class="eye-box"><div class="lash l1"></div><div class="lash l2"></div><div class="lash l3"></div><div class="eye"><div class="eyelid"></div><div class="iris"><div class="pupil"><div class="catchlight"></div></div></div></div></div>
-            <div class="eye-box"><div class="lash l1"></div><div class="lash l2"></div><div class="lash l3"></div><div class="eye"><div class="eyelid"></div><div class="iris"><div class="pupil"><div class="catchlight"></div></div></div></div></div>
-        </div>
-
-        <div class="nose"></div>
-
-        <div class="cheek left"><div class="freckle f1"></div><div class="freckle f2"></div><div class="freckle f3"></div></div>
-        <div class="cheek right"><div class="freckle f1"></div><div class="freckle f2"></div><div class="freckle f3"></div></div>
-
-        <div class="mouth-wrapper">
-            <div class="mouth"><div class="teeth-wrapper"><div class="tooth"></div><div class="tooth"></div></div><div class="tongue"></div></div>
+        <div id="face-features">
+            <div class="eyes-wrapper">
+                <div class="eye-box"><div class="lash l1"></div><div class="lash l2"></div><div class="lash l3"></div><div class="eye"><div class="eyelid"></div><div class="iris"><div class="pupil"><div class="catchlight"></div></div></div></div></div>
+                <div class="eye-box"><div class="lash l1"></div><div class="lash l2"></div><div class="lash l3"></div><div class="eye"><div class="eyelid"></div><div class="iris"><div class="pupil"><div class="catchlight"></div></div></div></div></div>
+            </div>
+            <div class="nose"></div>
+            <div class="cheek left"><div class="freckle f1"></div><div class="freckle f2"></div><div class="freckle f3"></div></div>
+            <div class="cheek right"><div class="freckle f1"></div><div class="freckle f2"></div><div class="freckle f3"></div></div>
+            <div class="mouth-wrapper">
+                <div class="mouth"><div class="teeth-wrapper"><div class="tooth"></div><div class="tooth"></div></div><div class="tongue"></div></div>
+            </div>
         </div>
     </div>
 
-    <div id="demo-controls" style="display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(15, 23, 42, 0.9); padding: 15px; border-radius: 20px; border: 2px solid #38bdf8; backdrop-filter: blur(10px); font-family: 'Orbitron', sans-serif; width: 320px;">
-        <h3 style="color: #fde047; margin: 0 0 10px 0; text-align: center; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Animation Sandbox</h3>
-        
-        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 8px;">
-            <button onclick="setEmotion('')" style="flex:1; background: #334155; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Neutral</button>
-            <button onclick="setEmotion('talking')" style="flex:1; background: #0ea5e9; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold;">Talking</button>
-            <button onclick="setEmotion('sleeping')" style="flex:1; background: #6366f1; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Sleeping</button>
-            <button onclick="setEmotion('jamming')" style="flex:1; background: #22c55e; color: black; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold;">Jamming</button>
+    <div id="demo-controls" style="display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; background: rgba(15, 23, 42, 0.9); padding: 12px; border-radius: 20px; border: 2px solid #38bdf8; backdrop-filter: blur(10px); width: 340px; font-family: 'Orbitron', sans-serif;">
+        <h4 style="color: #fde047; margin: 0 0 10px 0; text-align: center; text-transform: uppercase; font-size: 12px;">Animation Sandbox</h4>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 8px;">
+            <button onclick="setEmotion('')" style="background: #334155; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">Neutral</button>
+            <button onclick="setEmotion('talking')" style="background: #0ea5e9; color: black; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold;">Talk</button>
+            <button onclick="setEmotion('sleeping')" style="background: #6366f1; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">Sleep</button>
+            <button onclick="setEmotion('jamming')" style="background: #22c55e; color: black; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold;">Jam</button>
+            <button onclick="setEmotion('angry')" style="background: #ef4444; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">Angry</button>
+            <button onclick="setEmotion('thinking')" style="background: #a855f7; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">Think</button>
+            <button onclick="setEmotion('shouting')" style="background: #f97316; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px;">Shout</button>
         </div>
-
-        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px;">
-            <button onclick="setEmotion('angry')" style="flex:1; background: #ef4444; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Angry</button>
-            <button onclick="setEmotion('thinking')" style="flex:1; background: #a855f7; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Thinking</button>
-            <button onclick="setEmotion('shouting')" style="flex:1; background: #f97316; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Shouting</button>
-        </div>
-
-        <button onclick="toggleTheme()" style="background: #fff; color: #0f172a; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: 900; text-transform: uppercase; font-size: 12px;">🔄 Swap Visual Theme</button>
+        <button onclick="toggleTheme()" style="background: #fff; color: #0f172a; border: none; padding: 8px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 900; text-transform: uppercase; font-size: 10px;">🔄 Swap Visual Theme</button>
     </div>
 
     <script>
         const socket = io();
-        const currentThemeFromConfig = "{{ config.face_theme | default('theme-spongebob') }}";
-
-        // --- GITHUB DEMO LOGIC ---
-        if (window.location.search.includes('demo=true')) {
-            document.getElementById('demo-controls').style.display = 'block';
-        }
+        if (window.location.search.includes('demo=true')) document.getElementById('demo-controls').style.display = 'block';
 
         function setEmotion(state) {
             let isRobot = document.body.classList.contains('theme-robot');
@@ -388,7 +236,7 @@
             document.body.classList.toggle('theme-spongebob');
         }
 
-        // --- PRODUCTION SOCKET LOGIC ---
+        // Production Socket Logic
         socket.on('hardware_command', (data) => {
             const cmd = data.command;
             if (cmd === "LED:BLUE") setFaceState("");
@@ -405,6 +253,24 @@
             let theme = document.body.classList.contains('theme-robot') ? 'theme-robot' : 'theme-spongebob';
             document.body.className = `${theme} ${state}`.trim();
         }
+
+        // Dynamic Alarm UI Updates
+        socket.on('update_alarms_ui', (alarms) => {
+            const list = document.getElementById('alarm-list');
+            const box = document.getElementById('alarm-queue');
+            list.innerHTML = '';
+            if (alarms.length === 0) { box.style.display = 'none'; return; }
+            box.style.display = 'block';
+            alarms.forEach(al => {
+                let text = al.type === 'daily' ? `⏰ [${al.time}] ${al.label}` : `⏳ [${al.minutes}m] ${al.label}`;
+                list.innerHTML += `<div class="glass-alarm-item">${text}</div>`;
+            });
+        });
+
+        socket.on('now_playing', (data) => {
+            document.getElementById('song-title-text').innerText = data.title;
+            document.getElementById('music-hud').style.display = 'flex';
+        });
     </script>
 </body>
 </html>
