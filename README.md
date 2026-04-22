@@ -1,37 +1,58 @@
-# 🤖 NoPants OS: The AI-Powered Desktop Assistant
+<div align="center">
+  <h1>🤖 NoPants OS</h1>
+  <p><b>The AI-Powered, Hardware-Integrated Desktop Assistant</b></p>
+  
+  ![NoPants Hero Shot](Pics_&_Videos/Main_hero_pic.jpeg)
 
-Welcome to the central repository for **NoPants**, a fully functional, highly interactive robotic desktop assistant. Built on a "Dual-Brain" AI architecture, NoPants bridges the gap between hardware and software, acting as a proactive tabletop companion.
+  <p>
+    <img src="https://img.shields.io/badge/Python-Flask_&_SocketIO-blue?style=for-the-badge&logo=python" />
+    <img src="https://img.shields.io/badge/C++-ESP32_FreeRTOS-purple?style=for-the-badge&logo=c%2B%2B" />
+    <img src="https://img.shields.io/badge/AI-Groq_&_Ollama-orange?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/Frontend-Vanilla_JS-yellow?style=for-the-badge&logo=javascript" />
+  </p>
+</div>
 
-![NoPants Hero Shot](Pics_&_Videos/Main_hero_pic.jpeg)
+---
 
 ## 🌟 Overview
 
-NoPants OS is not just a standard chatbot—it is a comprehensive **Task Execution Engine**. It features a custom Python/Flask WebSockets server that routes complex voice commands, controls physical hardware (via an ESP32), and renders a beautiful, real-time Glassmorphism holographic UI.
+NoPants OS is not just a standard chatbot—it is a comprehensive **Task Execution Engine**. It bridges the gap between software logic and physical hardware, acting as a proactive tabletop companion. 
 
-Whether you need to manipulate smart home lights via ESP-NOW, manage a Pomodoro study session, dynamically schedule Google Calendar events, or just want to hear a joke, NoPants processes the request instantly.
+By utilizing a custom Python WebSockets server, NoPants interprets complex voice commands, controls physical hardware arrays, and renders a real-time Glassmorphism holographic UI.
+
+### ✨ Key Capabilities
+* **🧠 Dual-Brain Architecture:** Lightning-fast cloud inference (Groq API) with an automatic failover to local, offline LLMs (Ollama) if the internet drops.
+* **⚡ Smart Hardware Bridge:** An ESP32 running FreeRTOS translates AI intents into servo movements, RGB Neopixel states, and wireless ESP-NOW smart home commands.
+* **📅 Proactive Assistant:** Autonomously monitors Google Calendar, triggering panic sequences and alarms to warn you of upcoming meetings.
+* **🎮 Custom Web Arcade:** Features fully playable HTML5 Canvas games controlled physically by the robot's rotary knobs and buttons.
+
+---
 
 ## 📚 Documentation Directory
 
 To keep this repository clean, the detailed technical breakdowns of NoPants' subsystems have been divided into the following documents:
 
-* **[Architecture & AI Logic](docs/ARCHITECTURE.md):** Deep dive into the Dual-Brain LLM routing (Groq + Ollama), the JSON Task Queue, and the Piper offline TTS engine.
-* **[Features & Capabilities](docs/FEATURES.md):** Detailed explanations and code snippets of the Proactive Calendar Monitor, Live Weather extraction, and VLC Music Queue.
-* **[Hardware & ESP32 Firmware](docs/HARDWARE.md):** Schematics, FreeRTOS dual-core logic, ESP-NOW smart home networking, and physical UI overrides.
-* **[Setup & Installation Guide](docs/SETUP_GUIDE.md):** Step-by-step instructions on how to install dependencies, configure API keys, and boot NoPants OS on a Raspberry Pi.
+* 🧠 **[Architecture & AI Logic](docs/ARCHITECTURE.md):** Deep dive into the Dual-Brain routing, the JSON Master Task Queue, and the Piper offline TTS engine.
+* 🚀 **[Features & Capabilities](docs/FEATURES.md):** Detailed code snippets of the UI Dashboards, Proactive Calendar Monitor, Live Weather extraction, and VLC Music Queue.
+* 🔌 **[Hardware & ESP32 Firmware](docs/HARDWARE.md):** Schematics, FreeRTOS dual-core logic, ESP-NOW smart home networking, and physical UI overrides.
+* ⚙️ **[Setup & Installation Guide](docs/SETUP_GUIDE.md):** Step-by-step instructions on how to install dependencies, configure API keys, and boot NoPants OS on a Raspberry Pi.
 
-## 📸 Interface Sneak Peek
+---
 
-The system features a dynamically animated face running in Chromium Kiosk Mode, paired with a fully responsive web-based Command Center for system monitoring and "Subconscious" memory injection.
+## 👁️ The Persona Interface
 
-| Holographic AI Face | Command Center (Live Logs) |
-|:---:|:---:|
-| ![Theme](Pics_&_Videos/Holographic_AI_theme_skin.jpeg) | ![Logs](Pics_&_Videos/log_dashboard.png) |
-| **Core Matrix Config** | **Subconscious Memory** |
-| ![Matrix](Pics_&_Videos/core_matrix_dashboard.png) | ![Subconscious](Pics_&_Videos/subconscious_dashboard.png) |
+The system features a dynamically animated face running in Chromium Kiosk Mode on the robot's display. It utilizes CSS state machines, automatically syncing eye-blinking, mouth-moving, and head-bobbing animations to the audio and hardware events emitted by the Python core.
+
+<div align="center">
+  <img src="Pics_&_Videos/Holographic_AI_theme_skin.jpeg" alt="Holographic Face" width="700" style="border-radius: 10px;"/>
+</div>
+
+---
 
 ## 👨‍💻 About the Developer
 
-Designed and engineered by **William Teow Wei Liang**, a Mechatronics Engineering student at Universiti Sains Malaysia (USM). This project was created to explore the intersection of artificial intelligence, full-stack web development, and embedded hardware systems. 
+Designed and engineered by **William Teow Wei Liang**, a Mechatronics Engineering student at Universiti Sains Malaysia (USM). 
 
----
-*If you like this project, feel free to drop a ⭐ on the repository!*
+This project was created to explore the intersection of artificial intelligence, full-stack web development, and embedded hardware systems. 
+
+*If you found this architecture interesting or helpful, feel free to drop a ⭐ on the repository!*
