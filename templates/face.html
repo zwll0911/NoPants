@@ -1315,6 +1315,38 @@
             window.location.reload();
         });
     </script>
+
+    <div id="demo-controls" style="display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(15, 23, 42, 0.8); padding: 15px 30px; border-radius: 20px; border: 2px solid #38bdf8; backdrop-filter: blur(10px); gap: 15px; font-family: 'Orbitron', sans-serif;">
+        <h3 style="color: #fde047; margin: 0 0 10px 0; text-align: center; text-transform: uppercase; font-size: 16px;">Animation Sandbox</h3>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="setEmotion('')" style="background: #334155; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold;">Neutral</button>
+            <button onclick="setEmotion('talking')" style="background: #38bdf8; color: black; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold;">Talking</button>
+            <button onclick="setEmotion('sleeping')" style="background: #a855f7; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold;">Sleeping</button>
+            <button onclick="setEmotion('jamming')" style="background: #22c55e; color: black; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: bold;">Jamming</button>
+        </div>
+        <div style="margin-top: 15px; text-align: center;">
+            <button onclick="toggleTheme()" style="background: #ea580c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: inherit; width: 100%; font-weight: bold; text-transform: uppercase;">🔄 Swap UI Theme</button>
+        </div>
+    </div>
+
+    <script>
+        // Check if the URL contains "?demo=true"
+        if (window.location.search.includes('demo=true')) {
+            document.getElementById('demo-controls').style.display = 'block';
+        }
+
+        // Functions to control the face from the browser
+        function setEmotion(state) {
+            // Remove existing animation classes, but keep the theme class if it exists
+            let isHolo = document.body.classList.contains('holo-theme');
+            document.body.className = state; 
+            if (isHolo) document.body.classList.add('holo-theme');
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('holo-theme'); // Swap between standard and holo theme!
+        }
+    </script>
 </body>
 
 </html>
